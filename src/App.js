@@ -379,33 +379,46 @@ const handleReset = async () => {
           localStorage.removeItem("myRoomId");
           localStorage.removeItem("myTeam");
 
-          // 🧹 Reset all local states to start a fresh auction
+          // 🧹 Reset local React states (fresh reports)
           setRoomData({
-            teams: {},
+            teams: {},               // clears PlayersBought & RemainingPurse
             currentPlayer: null,
             currentBid: null,
             currentBidTeam: null,
             status: null,
           });
-          setPlayers([]); // ✅ clear any cached player list
+          setPlayers([]); // clear any cached player list temporarily
 
-          // 🆕 Create a brand‑new Firestore document for this room
+          // 🆕 Create a new Firestore document for this room
           await createRoom(
             roomId,
             { numTeams, budget, maxPlayers, maxOverseas },
             myDeviceId
           );
 
-          // 🧠 Save this new room ID for the current host device
+          // 🧠 Save this new room ID locally
           localStorage.setItem("myRoomId", roomId);
 
-          // ✅ Proceed to auction configuration page
+          // ♻️ Reset player SOLD data but keep full player list
+          const { collection, getDocs, updateDoc } = await import("firebase/firestore");
+          const { db } = await import("./firebaseConfig");
+
+          const snap = await getDocs(collection(db, "players"));
+          for (const p of snap.docs) {
+            await updateDoc(p.ref, {
+              soldPrice: null,
+              team: null,
+              status: null,
+              playerSet:
+                p.data().originalSet || p.data().playerSet || "Set 1",
+            });
+          }
+
+          // ✅ Navigate to configuration page
           setPage("hostConfig");
         } catch (error) {
           console.error("🚨 Error creating room:", error);
-          alert(
-            "🚨 Failed to create room. Please check your connection and try again."
-          );
+          alert("🚨 Failed to create room. Please check your connection and try again.");
         }
       }}
     >
