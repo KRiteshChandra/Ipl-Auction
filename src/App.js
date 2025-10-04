@@ -357,7 +357,7 @@ const handleReset = async () => {
   </div>
 )}
 
-      {page === "hostRoom" && (
+{page === "hostRoom" && (
   <div className="center-box">
     <h2 className="page-title">Create Room</h2>
 
@@ -390,7 +390,7 @@ const handleReset = async () => {
             currentBidTeam: null,
             status: null,
           });
-          setPlayers([]);            // clear any cached player list temporarily
+          // ❌ Removed setPlayers([]) so live listener keeps player list intact
 
           // 🆕 Create a new Firestore document for this room
           await createRoom(
