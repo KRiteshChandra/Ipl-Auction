@@ -19,32 +19,10 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamName = localStorage.getItem("myTeam");
   const thisTeam = roomData?.teams?.[teamName];
 
-  // 🔥 Corrected "team removed" check — prevents repeated false alerts
+  // 🧭 Removed “team removed” logic — teams are never auto‑kicked
   useEffect(() => {
-    if (!roomData || !roomData.teams || !teamName) return;
-
-    // if there are no teams yet in Firestore snapshot, exit silently
-    const allTeams = Object.keys(roomData.teams);
-    if (allTeams.length === 0) return;
-
-    const exists = !!roomData.teams[teamName];
-    const everExisted = localStorage.getItem("teamEverExisted");
-
-    if (exists) {
-      // mark that this device/team has appeared in snapshot
-      localStorage.setItem("teamEverExisted", "true");
-      return;
-    }
-
-    // show alert only if the team previously existed but is now missing
-    if (everExisted && !exists) {
-      alert("❌ Your team has been removed from this room by the host.");
-      localStorage.removeItem("teamEverExisted");
-      localStorage.removeItem("myTeam");
-      localStorage.removeItem("myRoomId");
-      setPage("home");
-    }
-  }, [roomData, teamName, setPage]);
+    // we simply wait for room data; no removal check
+  }, []);
 
   // ✅ Early guard: show joining message until data arrives
   if (!roomData) {
