@@ -279,7 +279,7 @@ const handleReset = async () => {
   };
 
   return (
-    <div className="scale-wrapper">
+  <div className="scale-wrapper">
     <div className="auction-bg">
       {page !== "home" && (
         <div className="back-btn" onClick={goBack}>←</div>
@@ -288,15 +288,32 @@ const handleReset = async () => {
       {page === "home" && (
         <div className="center-box">
           <h1 className="page-title">🏏 Mock Auction</h1>
-          <button className="menu-bar" onClick={() => setPage("playerPass")}>Player Management</button>
-          <button className="menu-bar" onClick={() => setPage("hostPass")}>Host Section</button>
-          <button className="menu-bar" onClick={() => setPage("bidding")}>Bidding</button>
-          <button className="menu-bar" onClick={() => setPage("playersList")}>Players List</button>
-          <button className="menu-bar" onClick={() => setPage("remainingPurse")}>Remaining Purse</button>
-          <button className="menu-bar" onClick={() => setPage("playersBought")}>Players Bought</button>
-          <button className="menu-bar" onClick={() => setPage("roomsLogin")}>Rooms</button>
+          <button className="menu-bar" onClick={() => setPage("playerPass")}>
+            Player Management
+          </button>
+          <button className="menu-bar" onClick={() => setPage("hostPass")}>
+            Host Section
+          </button>
+          <button className="menu-bar" onClick={() => setPage("bidding")}>
+            Bidding
+          </button>
+          <button className="menu-bar" onClick={() => setPage("playersList")}>
+            Players List
+          </button>
+          <button className="menu-bar" onClick={() => setPage("remainingPurse")}>
+            Remaining Purse
+          </button>
+          <button className="menu-bar" onClick={() => setPage("playersBought")}>
+            Players Bought
+          </button>
+          <button className="menu-bar" onClick={() => setPage("roomsLogin")}>
+            Rooms
+          </button>
         </div>
       )}
+    </div> {/* closes .auction-bg */}
+  </div>   {/* closes .scale-wrapper */}
+);
 
       {page === "playerPass" && (
         <PasswordPage
