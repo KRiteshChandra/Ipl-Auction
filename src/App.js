@@ -281,10 +281,12 @@ const handleReset = async () => {
   return (
   <div className="scale-wrapper">
     <div className="auction-bg">
+      {/* 🔙 Back Button */}
       {page !== "home" && (
         <div className="back-btn" onClick={goBack}>←</div>
       )}
 
+      {/* 🏠 Home Page */}
       {page === "home" && (
         <div className="center-box">
           <h1 className="page-title">🏏 Mock Auction</h1>
@@ -311,10 +313,8 @@ const handleReset = async () => {
           </button>
         </div>
       )}
-    </div> {/* closes .auction-bg */}
-  </div>   {/* closes .scale-wrapper */}
-);
 
+      {/* 🧩 Player Section */}
       {page === "playerPass" && (
         <PasswordPage
           label="Enter Player Password"
@@ -322,10 +322,16 @@ const handleReset = async () => {
           onSuccess={() => setPage("player")}
         />
       )}
+
       {page === "player" && (
-        <PlayerManager players={players} setPlayers={setPlayers} goHome={() => setPage("home")} />
+        <PlayerManager
+          players={players}
+          setPlayers={setPlayers}
+          goHome={() => setPage("home")}
+        />
       )}
 
+      {/* 🧩 Host Section – Password */}
       {page === "hostPass" && (
         <PasswordPage
           label="Enter Host Password"
@@ -334,348 +340,345 @@ const handleReset = async () => {
         />
       )}
 
+      {/* 🧩 Host Home Screen */}
       {page === "hostHome" && (
         <div className="center-box">
           <h2 className="page-title">Host Section</h2>
-          <button className="menu-bar" onClick={() => { setRoomId(""); setPage("hostRoom"); }}>▶ Start New Auction</button>
-          <button className="menu-bar" onClick={() => setPage("hostContinue")}>⏩ Continue Auction</button>
+          <button
+            className="menu-bar"
+            onClick={() => { setRoomId(""); setPage("hostRoom"); }}
+          >
+            ▶ Start New Auction
+          </button>
+          <button
+            className="menu-bar"
+            onClick={() => setPage("hostContinue")}
+          >
+            ⏩ Continue Auction
+          </button>
         </div>
       )}
 
-{page === "hostContinue" && (
-  <div className="center-box">
-    <h2 className="page-title">Continue Auction</h2>
+      {/* 🧩 Continuing an Auction */}
+      {page === "hostContinue" && (
+        <div className="center-box">
+          <h2 className="page-title">Continue Auction</h2>
+          <input
+            className="input-box"
+            placeholder="Enter existing Room ID"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          />
+          <button
+            className="menu-bar"
+            onClick={() => {
+              if (!roomId.trim()) {
+                alert("⚠️ Please enter a Room ID to continue.");
+                return;
+              }
+              try {
+                const storedRoom = localStorage.getItem("myRoomId");
+                if (storedRoom !== roomId) {
+                  localStorage.removeItem("myTeam");
+                  localStorage.setItem("myRoomId", roomId);
+                }
+                setRoomId(roomId);
+                setPage("auctionPlayer");
+              } catch (err) {
+                console.error("🚨 Error continuing auction:", err);
+                alert("🚨 Failed to continue auction. Please try again.");
+              }
+            }}
+          >
+            ▶ Continue
+          </button>
+        </div>
+      )}
 
-    <input
-      className="input-box"
-      placeholder="Enter existing Room ID"
-      value={roomId}
-      onChange={(e) => setRoomId(e.target.value)}
-    />
+      {/* 🧩 Host Room – Create Room */}
+      {page === "hostRoom" && (
+        <div className="center-box">
+          <h2 className="page-title">Create Room</h2>
+          <input
+            className="input-box"
+            placeholder="Enter new Room ID"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          />
+          <button
+            className="menu-bar"
+            onClick={async () => {
+              if (!roomId.trim()) {
+                alert("⚠️ Please enter a Room ID before creating the room.");
+                return;
+              }
+              try {
+                // 🔄 Reset local session
+                localStorage.removeItem("myRoomId");
+                localStorage.removeItem("myTeam");
 
-    <button
-      className="menu-bar"
-      onClick={() => {
-        // ✅ Basic validation
-        if (!roomId.trim()) {
-          alert("⚠️ Please enter a Room ID to continue.");
-          return;
-        }
+                // ♻️ Reset auction data
+                setRoomData({
+                  teams: {},
+                  currentPlayer: null,
+                  currentBid: null,
+                  currentBidTeam: null,
+                  status: null,
+                });
 
-        try {
-          // 🧠 Reuse existing room if same; clear old team only when switching rooms
-          const storedRoom = localStorage.getItem("myRoomId");
-          if (storedRoom !== roomId) {
-            localStorage.removeItem("myTeam"); // remove old team binding
-            localStorage.setItem("myRoomId", roomId);
-          }
+                // 🆕 Create fresh Firestore room
+                await createRoom(
+                  roomId,
+                  { numTeams, budget, maxPlayers, maxOverseas },
+                  myDeviceId
+                );
 
-          // ✅ Keep current Firestore listener alive (no setRoomData(null))
-          // so roomData immediately repopulates and avoids "Loading auction..." hang
-          setRoomId(roomId);
+                localStorage.setItem("myRoomId", roomId);
 
-          // ✅ Move directly to the auction player screen
-          // Firestore listener updates roomData instantly for all devices
-          setPage("auctionPlayer");
-        } catch (err) {
-          console.error("🚨 Error continuing auction:", err);
-          alert("🚨 Failed to continue auction. Please try again.");
-        }
-      }}
-    >
-      ▶ Continue
-    </button>
-  </div>
-)}
+                // 🔃 Reset players in Firestore
+                const { collection, getDocs, updateDoc } = await import("firebase/firestore");
+                const { db } = await import("./firebaseConfig");
+                const snap = await getDocs(collection(db, "players"));
+                for (const p of snap.docs) {
+                  await updateDoc(p.ref, {
+                    soldPrice: null,
+                    team: null,
+                    status: null,
+                    playerSet: p.data().originalSet || p.data().playerSet || "Set 1",
+                  });
+                }
 
-{page === "hostRoom" && (
-  <div className="center-box">
-    <h2 className="page-title">Create Room</h2>
+                // ▶ Move to configuration
+                setPage("hostConfig");
+              } catch (error) {
+                console.error("🚨 Error creating room:", error);
+                alert("🚨 Failed to create room. Please check your connection and try again.");
+              }
+            }}
+          >
+            ✅ Create
+          </button>
+        </div>
+      )}
 
-    <input
-      className="input-box"
-      placeholder="Enter new Room ID"
-      value={roomId}
-      onChange={(e) => setRoomId(e.target.value)}
-    />
-
-    <button
-      className="menu-bar"
-      onClick={async () => {
-        // ✅ Basic validation
-        if (!roomId.trim()) {
-          alert("⚠️ Please enter a Room ID before creating the room.");
-          return;
-        }
-
-        try {
-          // 🔄 Clear any previous local‑storage session data
-          localStorage.removeItem("myRoomId");
-          localStorage.removeItem("myTeam");
-
-          // 🧹 Reset local React states (fresh reports)
-          setRoomData({
-            teams: {},               // clears PlayersBought & RemainingPurse
-            currentPlayer: null,
-            currentBid: null,
-            currentBidTeam: null,
-            status: null,
-          });
-          // ❌ Removed setPlayers([]) so live listener keeps player list intact
-
-          // 🆕 Create a new Firestore document for this room
-          await createRoom(
-            roomId,
-            { numTeams, budget, maxPlayers, maxOverseas },
-            myDeviceId
-          );
-
-          // 🧠 Save this new room ID locally
-          localStorage.setItem("myRoomId", roomId);
-
-          // ♻️ Reset player SOLD data but keep full player list intact
-          const { collection, getDocs, updateDoc } = await import("firebase/firestore");
-          const { db } = await import("./firebaseConfig");
-
-          const snap = await getDocs(collection(db, "players"));
-          for (const p of snap.docs) {
-            await updateDoc(p.ref, {
-              soldPrice: null,
-              team: null,
-              status: null,
-              playerSet:
-                p.data().originalSet || p.data().playerSet || "Set 1",
-            });
-          }
-
-          // ✅ Navigate straight to the configuration page
-          setPage("hostConfig");
-        } catch (error) {
-          console.error("🚨 Error creating room:", error);
-          alert(
-            "🚨 Failed to create room. Please check your connection and try again."
-          );
-        }
-      }}
-    >
-      ✅ Create
-    </button>
-  </div>
-)}
+      {/* 🧩 Host Configuration */}
       {page === "hostConfig" && (
         <div className="center-box">
           <h2>Configure Auction</h2>
-          <input type="number" className="input-box" value={numTeams} onChange={(e)=>setNumTeams(+e.target.value)} placeholder="Number of Teams" />
-          <input type="number" className="input-box" value={budget} onChange={(e)=>setBudget(+e.target.value)} placeholder="Purse per team (Lakhs)" />
-          <input type="number" className="input-box" value={maxPlayers} onChange={(e)=>setMaxPlayers(+e.target.value)} placeholder="Max Players" />
-          <input type="number" className="input-box" value={maxOverseas} onChange={(e)=>setMaxOverseas(+e.target.value)} placeholder="Max Overseas" />
+          <input
+            type="number"
+            className="input-box"
+            value={numTeams}
+            onChange={(e) => setNumTeams(+e.target.value)}
+            placeholder="Number of Teams"
+          />
+          <input
+            type="number"
+            className="input-box"
+            value={budget}
+            onChange={(e) => setBudget(+e.target.value)}
+            placeholder="Purse per team (Lakhs)"
+          />
+          <input
+            type="number"
+            className="input-box"
+            value={maxPlayers}
+            onChange={(e) => setMaxPlayers(+e.target.value)}
+            placeholder="Max Players"
+          />
+          <input
+            type="number"
+            className="input-box"
+            value={maxOverseas}
+            onChange={(e) => setMaxOverseas(+e.target.value)}
+            placeholder="Max Overseas"
+          />
           <p>Teams {numTeams}, Purse {budget} Lakhs</p>
-          <button className="menu-bar" onClick={() => setPage("hostSets")}>▶ Start Auction</button>
+          <button className="menu-bar" onClick={() => setPage("hostSets")}>
+            ▶ Start Auction
+          </button>
         </div>
       )}
 
+      {/* 🧩 Host – Select Set */}
       {page === "hostSets" && (
         <HostSetsPage
           players={players}
-          onSelectSet={(setName) => { setSelectedSet(setName); setPage("hostPlayers"); }}
+          onSelectSet={(setName) => {
+            setSelectedSet(setName);
+            setPage("hostPlayers");
+          }}
         />
       )}
 
+      {/* 🧩 Host – Select Player */}
       {page === "hostPlayers" && (
-  <HostPlayersInSet
-    players={players}
-    setName={selectedSet}
-    onSelectPlayer={async (p) => {
-      setSelectedPlayer(p);
+        <HostPlayersInSet
+          players={players}
+          setName={selectedSet}
+          onSelectPlayer={async (p) => {
+            setSelectedPlayer(p);
+            const safePlayer = {
+              id: p?.id || null,
+              name: p?.name || "",
+              jerseyNumber: p?.jerseyNumber || "",
+              playerSet: p?.playerSet || "",
+              category: p?.category || "",
+              role: p?.role || "",
+              basePrice: Number(p?.basePrice) || 0,
+              country: p?.country || "",
+              imageURL: p?.imageURL || null,
+            };
+            try {
+              await updateDoc(doc(db, "rooms", roomId), {
+                currentPlayer: safePlayer,
+                currentBid: null,
+                currentBidTeam: null,
+                status: null,
+              });
+            } catch (err) {
+              console.error("🚨 Firestore error writing currentPlayer:", err);
+              alert("Failed to load player. Check Firestore config/data!");
+            }
+            setPage("auctionPlayer");
+          }}
+        />
+      )}
 
-      // ✅ Firestore-safe snapshot (no base64!)
-      const safePlayer = {
-        id: p?.id || null,
-        name: p?.name || "",
-        jerseyNumber: p?.jerseyNumber || "",
-        playerSet: p?.playerSet || "",
-        category: p?.category || "",
-        role: p?.role || "",
-        basePrice: Number(p?.basePrice) || 0,
-        country: p?.country || "",
-        imageURL: p?.imageURL || null,   // ✅ Only reference
-      };
-
-      try {
-        await updateDoc(doc(db, "rooms", roomId), {
-          currentPlayer: safePlayer,
-          currentBid: null,
-          currentBidTeam: null,
-          status: null,
-        });
-      } catch (err) {
-        console.error("🚨 Firestore error writing currentPlayer:", err);
-        alert("Failed to load player. Check Firestore config/data!");
-      }
-
-      setPage("auctionPlayer");
-    }}
-  />
-)}
-
+      {/* 🧩 Auction Player Screen */}
       {page === "auctionPlayer" && (
-  roomData ? (
-    roomData.notFound ? (
-      <div className="center-box">
-        <h2>⚠️ Room not found</h2>
-      </div>
-    ) : (
-      <AuctionBackground
-        /* --- Core player & bid data --- */
-        player={roomData.currentPlayer}
-        currentBid={roomData.currentBid}
-        currentBidTeam={roomData.currentBidTeam}
+        roomData ? (
+          roomData.notFound ? (
+            <div className="center-box">
+              <h2>⚠️ Room not found</h2>
+            </div>
+          ) : (
+            <AuctionBackground
+              player={roomData.currentPlayer}
+              currentBid={roomData.currentBid}
+              currentBidTeam={roomData.currentBidTeam}
+              increaseBid={increaseBid}
+              decreaseBid={decreaseBid}
+              handleSold={handleSold}
+              handleUnsold={handleUnsold}
+              handleReset={handleReset}
+              status={roomData.status}
+              numTeams={numTeams}
+              maxPlayers={maxPlayers}
+              maxOverseas={maxOverseas}
+              budget={budget}
+              teams={roomData.teams || {}}
+              roomId={roomId}
+              roomData={roomData}
+              isHost={roomData.createdBy === myDeviceId}
+              isPrivate={roomData.accessType === "private"}
+              jumpBidAllowed={roomData.jumpBidAllowed || false}
+              activeBidders={roomData.activeBidders || []}
+              accessMode={roomData.accessMode || "max"}
+            />
+          )
+        ) : (
+          <div className="center-box">
+            <h2>⏳ Loading auction…</h2>
+          </div>
+        )
+      )}
 
-        /* --- Controls --- */
-        increaseBid={increaseBid}
-        decreaseBid={decreaseBid}
-        handleSold={handleSold}
-        handleUnsold={handleUnsold}
-        handleReset={handleReset}
-
-        /* --- Configuration --- */
-        status={roomData.status}
-        numTeams={numTeams}
-        maxPlayers={maxPlayers}
-        maxOverseas={maxOverseas}
-        budget={budget}
-
-        /* --- Live Teams/Data --- */
-        teams={roomData.teams || {}}
-        roomId={roomId}
-        roomData={roomData}
-
-        /* --- Access / Role info --- */
-        isHost={roomData.createdBy === myDeviceId}
-        isPrivate={roomData.accessType === "private"}
-        jumpBidAllowed={roomData.jumpBidAllowed || false}
-        activeBidders={roomData.activeBidders || []}
-        accessMode={roomData.accessMode || "max"}
-      />
-    )
-  ) : (
-    <div className="center-box">
-      <h2>⏳ Loading auction…</h2>
-    </div>
-  )
-)}
-
+      {/* 🧩 Bidding Entry */}
       {page === "bidding" && (
-  <div className="center-box">
-    <h2 className="page-title">Enter Room ID</h2>
+        <div className="center-box">
+          <h2 className="page-title">Enter Room ID</h2>
+          <input
+            className="input-box"
+            placeholder="Enter Room ID"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          />
+          <button
+            className="menu-bar"
+            onClick={() => {
+              const id = roomId.trim();
+              if (!id) {
+                alert("⚠️ Please enter a valid Room ID to continue.");
+                return;
+              }
+              const savedRoom = localStorage.getItem("myRoomId");
+              const savedTeam = localStorage.getItem("myTeam");
+              if (savedRoom === id && savedTeam) {
+                setRoomId(id);
+                setPage("biddingRoom");
+                return;
+              }
+              localStorage.removeItem("myRoomId");
+              localStorage.removeItem("myTeam");
+              localStorage.setItem("myRoomId", id);
+              setRoomId(id);
+              setPage("biddingTeam");
+            }}
+          >
+            ▶ Next
+          </button>
+        </div>
+      )}
 
-    <input
-      className="input-box"
-      placeholder="Enter Room ID"
-      value={roomId}
-      onChange={(e) => setRoomId(e.target.value)}
-    />
-
-    <button
-      className="menu-bar"
-      onClick={() => {
-        // ✅ Validate the Room ID
-        const id = roomId.trim();
-        if (!id) {
-          alert("⚠️ Please enter a valid Room ID to continue.");
-          return;
-        }
-
-        // 🔍 Check existing memory before clearing anything
-        const savedRoom = localStorage.getItem("myRoomId");
-        const savedTeam = localStorage.getItem("myTeam");
-
-        // 🧠 If this device already has a team for the same room, reuse it
-        if (savedRoom === id && savedTeam) {
-          setRoomId(id);
-          setPage("biddingRoom"); // ✅ skip team setup, go straight to bidding
-          return;
-        }
-
-        // 🧹 Different room (or first time) → reset and start fresh
-        localStorage.removeItem("myRoomId");
-        localStorage.removeItem("myTeam");
-
-        // 🔄 Save this new Room ID for current session
-        localStorage.setItem("myRoomId", id);
-
-        // 🟢 Move to team setup to join the room
-        setRoomId(id);
-        setPage("biddingTeam");
-      }}
-    >
-      ▶ Next
-    </button>
-  </div>
-)}
+      {/* 🧩 Bidding – Choose Team */}
       {page === "biddingTeam" && (
-  <BiddingTeamSetup
-    teamName={teamName}
-    setTeamName={setTeamName}
-    teamTheme={teamTheme}
-    setTeamTheme={setTeamTheme}
-    onEnter={async (teamObj) => {
-      try {
-        // 🧠 Make sure a valid roomId exists
-        if (!roomId || !roomId.trim()) {
-          alert("⚠️ Room ID not found. Please enter Room ID again.");
-          setPage("bidding"); // send back to ID entry
-          return;
-        }
+        <BiddingTeamSetup
+          teamName={teamName}
+          setTeamName={setTeamName}
+          teamTheme={teamTheme}
+          setTeamTheme={setTeamTheme}
+          onEnter={async (teamObj) => {
+            try {
+              if (!roomId || !roomId.trim()) {
+                alert("⚠️ Room ID not found. Please enter Room ID again.");
+                setPage("bidding");
+                return;
+              }
+              const savedRoom = localStorage.getItem("myRoomId");
+              const savedTeam = localStorage.getItem("myTeam");
+              if (savedRoom === roomId && savedTeam === teamObj.name) {
+                setPage("biddingRoom");
+                return;
+              }
+              await joinRoom(roomId, teamObj);
+              localStorage.setItem("myTeam", teamObj.name);
+              localStorage.setItem("myRoomId", roomId);
+              setPage("biddingRoom");
+            } catch (err) {
+              console.error("Error joining room:", err);
+              if (err.message.includes("Maximum number of teams")) {
+                alert(`❌ Room is full. Maximum ${numTeams} teams are allowed.`);
+              } else if (err.message.includes("already exists")) {
+                alert("❌ This team name already exists in this room. Choose another.");
+              } else if (err.message.includes("not found")) {
+                alert("❌ Room not found. Check the Room ID again.");
+              } else {
+                alert("🚨 Failed to join room. Please try again.");
+              }
+            }
+          }}
+        />
+      )}
 
-        // ✅ Prevent duplicate registration for same device + room
-        const savedRoom = localStorage.getItem("myRoomId");
-        const savedTeam = localStorage.getItem("myTeam");
-        if (savedRoom === roomId && savedTeam === teamObj.name) {
-          setPage("biddingRoom"); // already registered → skip
-          return;
-        }
-
-        // 🆕 Attempt to join the current room in Firestore
-        await joinRoom(roomId, teamObj);
-
-        // 💾 Save identity for this device
-        localStorage.setItem("myTeam", teamObj.name);
-        localStorage.setItem("myRoomId", roomId);
-
-        // ✅ Move to the bidding screen
-        setPage("biddingRoom");
-      } catch (err) {
-        console.error("Error joining room:", err);
-
-        if (err.message.includes("Maximum number of teams")) {
-          alert(`❌ Room is full. Maximum ${numTeams} teams are allowed.`);
-        } else if (err.message.includes("already exists")) {
-          alert("❌ This team name already exists in this room. Choose another.");
-        } else if (err.message.includes("not found")) {
-          alert("❌ Room not found. Check the Room ID again.");
-        } else {
-          alert("🚨 Failed to join room. Please try again.");
-        }
-      }
-    }}
-  />
-)}
-
+      {/* 🧩 Bidding Room */}
       {page === "biddingRoom" && (
-  <BiddingRoom
-    roomData={roomData}
-    roomId={roomId}
-    jumpBidAllowed={jumpBidAllowed}
-    setPage={setPage}// ✅ safely passes page
-  />
-)}
+        <BiddingRoom
+          roomData={roomData}
+          roomId={roomId}
+          jumpBidAllowed={jumpBidAllowed}
+          setPage={setPage}
+        />
+      )}
 
+      {/* 📜 Player List / Summary Pages */}
       {page === "playersList" && <PlayersListPage players={players} />}
       {page === "remainingPurse" && <RemainingPursePage teams={roomData?.teams || {}} />}
       {page === "playersBought" && <PlayersBoughtPage teams={roomData?.teams || {}} />}
-      {page === "roomsLogin" && <RoomsLogin onSuccess={()=>setPage("roomsPage")} />}
+
+      {/* 🏠 Rooms */}
+      {page === "roomsLogin" && <RoomsLogin onSuccess={() => setPage("roomsPage")} />}
       {page === "roomsPage" && <RoomsPage />}
     </div>
-  );
-}
+  </div>
+);
