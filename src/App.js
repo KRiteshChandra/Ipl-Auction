@@ -279,6 +279,7 @@ const handleReset = async () => {
   };
 
   return (
+    <div className="scale-wrapper">
     <div className="auction-bg">
       {page !== "home" && (
         <div className="back-btn" onClick={goBack}>←</div>
