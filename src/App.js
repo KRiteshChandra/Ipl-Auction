@@ -636,8 +636,7 @@ const handleReset = async () => {
     roomData={roomData}
     roomId={roomId}
     jumpBidAllowed={jumpBidAllowed}
-    setPage={setPage}
-    page={page}          // ✅ safely passes page
+    setPage={setPage}// ✅ safely passes page
   />
 )}
 
