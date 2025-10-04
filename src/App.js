@@ -311,7 +311,7 @@ const handleReset = async () => {
         </div>
       )}
 
-      {page === "hostContinue" && (
+{page === "hostContinue" && (
   <div className="center-box">
     <h2 className="page-title">Continue Auction</h2>
 
@@ -324,7 +324,7 @@ const handleReset = async () => {
 
     <button
       className="menu-bar"
-      onClick={async () => {
+      onClick={() => {
         // ✅ Basic validation
         if (!roomId.trim()) {
           alert("⚠️ Please enter a Room ID to continue.");
@@ -332,19 +332,19 @@ const handleReset = async () => {
         }
 
         try {
-          // 🔄 Clear any stale local‑storage session data first
-          localStorage.removeItem("myRoomId");
-          localStorage.removeItem("myTeam");
+          // 🧠 Reuse existing room if same; clear old team only when switching rooms
+          const storedRoom = localStorage.getItem("myRoomId");
+          if (storedRoom !== roomId) {
+            localStorage.removeItem("myTeam"); // remove old team binding
+            localStorage.setItem("myRoomId", roomId);
+          }
 
-          // 🧠 Save this Room ID as the current one for device memory
-          localStorage.setItem("myRoomId", roomId);
+          // ✅ Keep current Firestore listener alive (no setRoomData(null))
+          // so roomData immediately repopulates and avoids "Loading auction..." hang
+          setRoomId(roomId);
 
-          // 🧹 Reset local state so listener reloads fresh
-          setRoomData(null);
-          setPlayers([]); // optional refresh of player list for safety
-
-          // ✅ Navigate straight to the host’s auction screen
-          // The Firestore listener (listenRoom) will populate roomData automatically
+          // ✅ Move directly to the auction player screen
+          // Firestore listener updates roomData instantly for all devices
           setPage("auctionPlayer");
         } catch (err) {
           console.error("🚨 Error continuing auction:", err);
