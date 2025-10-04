@@ -14,8 +14,8 @@ export async function createRoom(roomId, config, createdBy) {
   await setDoc(doc(db, "rooms", roomId), {
     roomId,
     auctionState: "notStarted",
-    accessType: "public",      // default to public, host can toggle
-    createdBy,                 // 👈 store the deviceId of the creator
+    accessType: "public",     // default to public; host can toggle later
+    createdBy,                // store deviceId of the creator
     ...config,
     teams: {},
     currentPlayer: null,
@@ -24,7 +24,7 @@ export async function createRoom(roomId, config, createdBy) {
     status: null,
     auctionMode: "auto",
     jumpBidAllowed: false,
-    accessMode: "max"          // ✅ add status for consistency with App.js
+    accessMode: "max"         // consistent with App.js
   });
 }
 
@@ -55,10 +55,10 @@ export async function joinRoom(roomId, teamObj) {
     const teamData = {
       ...teamObj,
       purse: room.budget,
-      history: [],          // initialize empty player history
+      history: [] // initialize empty player history
     };
 
-    // ✅ Transactionally merge the new team into teams map
+    // ✅ Transactionally merge the new team into the teams map
     tx.set(ref, { teams: { [teamObj.name]: teamData } }, { merge: true });
   });
 }
@@ -68,7 +68,7 @@ export async function endAuction(roomId) {
   await updateDoc(doc(db, "rooms", roomId), { auctionState: "ended" });
 }
 
-// ❌ Delete room
+// ❌ Delete entire room
 export async function deleteRoom(roomId) {
   await deleteDoc(doc(db, "rooms", roomId));
 }
@@ -80,47 +80,18 @@ export async function removeTeamFromRoom(roomId, teamName) {
   });
 }
 
-// 👂 Listen to single room changes
-export function listenRoom(roomId, callback) {
-  return onSnapshot(doc(db, "rooms", roomId), (snap) => {
-    if (!snap.exists()) callback(null);
-    else {
-      const data = snap.data();
-
-      // ✅ Ensure currentPlayer never contains raw base64 image
-      let safePlayer = null;
-      if (data.currentPlayer) {
-        const p = data.currentPlayer;
-        safePlayer = {
-          id: p?.id || null,
-          name: p?.name || "",
-          jerseyNumber: p?.jerseyNumber || "",
-          playerSet: p?.playerSet || "",
-          category: p?.category || "",
-          role: p?.role || "",
-          basePrice: Number(p?.basePrice) || 0,
-          country: p?.country || "",
-          // ✅ now carry imageURL instead of imageDocId
-          imageURL: p?.imageURL || null
-        };
-      }
-
-      callback({ id: snap.id, ...data, currentPlayer: safePlayer });
-    }
-  });
-}
-
-// 👂 Listen to all rooms overview
-// 👂 Listen to single room changes
+// 👂 Listen to single room changes (clean, single definition)
 export function listenRoom(roomId, callback) {
   return onSnapshot(doc(db, "rooms", roomId), (snap) => {
     if (!snap.exists()) {
-      callback({ notFound: true });   // ✅ explicit fallback object
+      console.warn("Room not found:", roomId);
+      callback({ notFound: true });   // ✅ explicit fallback
       return;
     }
+
     const data = snap.data();
 
-    // sanitize currentPlayer
+    // ✅ Sanitize currentPlayer (no base64)
     let safePlayer = null;
     if (data.currentPlayer) {
       const p = data.currentPlayer;
@@ -138,5 +109,17 @@ export function listenRoom(roomId, callback) {
     }
 
     callback({ id: snap.id, ...data, currentPlayer: safePlayer });
+  });
+}
+
+// 👂 Listen to all rooms overview
+export function listenAllRooms(callback) {
+  return onSnapshot(collection(db, "rooms"), (snap) => {
+    callback(
+      snap.docs.map((docItem) => ({
+        id: docItem.id,
+        ...docItem.data(),
+      }))
+    );
   });
 }
