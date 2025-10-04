@@ -1,0 +1,897 @@
+/*-------------------------------------------------------
+Styling for entire Auction / Bidding UI
+-------------------------------------------------------*/
+
+/* ===== GLOBAL ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, #033d3d, #001a1a);
+  background-attachment: fixed;    /* ✅ keep background fixed */
+  background-repeat: no-repeat;    /* ✅ avoid tiling */
+  background-size: cover;          /* ✅ stretch across full screen */
+  color: white;
+}
+
+.auction-bg {
+  /* ✅ UPDATED: use dynamic viewport height for mobile */
+  min-height: 100dvh; 
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+}
+
+.bidding-table, 
+.info-grid, 
+.players-list-table, 
+.history-table {
+  min-width: 700px;       /* enforce desktop layout */
+  overflow-x: auto;       /* scroll if screen narrower */
+  display: block;         /* ensures scrolling works */
+}
+
+.center-box {
+  text-align:center;
+  margin:auto;
+  width:100%;
+}
+
+.page-title {
+  font-size:40px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+.menu-bar {
+  width:60vw;
+  margin:20px auto;
+  padding:13px 0;
+  font-size:20px;
+  border:none;
+  border-radius:6px;
+  background:#001a1a;
+  color:white;
+  box-shadow:0 0 15px cyan;
+  cursor:pointer;
+  text-align:center;
+}
+.menu-bar:hover {
+  background:cyan;
+  color:#001a1a;
+}
+/* Layout for PlayerForm inputs */
+.form-rows {
+  width: 90%;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;  /* gap between each row of bars */
+}
+
+/* Each row of bars */
+.form-row {
+  display: flex;
+  gap: 15px;   /* space between bars */
+  justify-content: center;  /* center row horizontally */
+}
+
+/* Make each bar width consistent */
+.form-row .input-box {
+  flex: 1;         /* take equal space */
+  max-width: 250px; /* keep bars neat and same size */
+}
+
+.input-box {
+  display:block;
+  margin:10px auto;
+  width:50%;
+  padding:15px;
+  font-size:18px;
+  border-radius:4px;
+  border:2px solid cyan;
+  background:rgba(0,20,20,0.9);
+  color:white;
+}
+
+/* ===== Hamburger + Sidebar ===== */
+/* Back button stays top left (already styled)
+   So move hamburger BELOW it */
+.hamburger {
+  position: absolute;
+  top: 70px;       /* shifted down below back button */
+  left: 20px;
+  cursor: pointer;
+  z-index: 1000;   /* ensures visibility */
+}
+.hamburger div {
+  width: 28px;
+  height: 4px;
+  background: white;
+  margin: 4px;
+}
+
+/* Sidebar panel */
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #111;
+  color: white;
+  width: 200px;
+  height: 90%;
+  padding:0;
+  padding-top: 60px;
+  box-shadow: 2px 0 10px rgba(0, 255, 255, 0.5);
+  z-index: 999;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 10px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid cyan;   /* ✅ separator for each option */
+  transition: background 0.2s;
+}
+.sidebar li:hover {
+  background: rgba(0,255,255,0.2);
+}
+
+.submenu li {
+  margin-left: 12px;
+  font-size: 14px;
+  padding: 10px;
+  border-bottom: 1px dashed cyan; /* ✅ dashed separator for suboptions */
+}
+/* ===== Back Arrow ===== */
+.back-btn {
+  position: absolute;      /* Fix it to page corner */
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  border-radius: 50%;
+  border: 2px solid cyan;
+  box-shadow: 0 0 10px cyan;
+  background: rgba(0, 0, 0, 0.6);
+  
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  z-index: 2000;
+  pointer-events: auto;
+}
+
+.back-btn:hover {
+  background: cyan;
+  color: #001a1a;
+  transform: scale(1.05);
+}
+.player-bar {
+  width: 60vw;
+  margin: 10px auto;
+  padding: 15px;
+  font-size: 18px;
+  border-radius: 6px;
+  background: #001a1a;
+  color: white;
+  box-shadow: 0 0 12px cyan;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+/* Glow-fill effect on hover */
+.player-bar:hover {
+  background: cyan;
+  color: #001a1a;
+  box-shadow: 0 0 20px cyan, 0 0 40px cyan;
+}
+
+.delete-btn {
+  float: right;
+  background: crimson;
+  border: none;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 3px 8px;
+}
+.delete-btn:hover {
+  background: darkred;
+}
+
+/* ===== Top-right controls (+/-/Reset) ===== */
+/* Container for - Reset + */
+.top-right-controls {
+  position: absolute;  /* Fix in page */
+  top: 20px;           /* distance from top */
+  right: 20px;         /* distance from right */
+  display: flex;       /* arrange in row */
+  align-items: center;
+  gap: 12px;           /* space between buttons */
+}
+
+/* - and + circle buttons */
+.circle-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #222;
+  color: white;
+  font-size: 22px;
+  text-align: center;
+  line-height: 45px;           /* center the minus/plus */
+  cursor: pointer;
+  box-shadow: 0 0 12px cyan;
+  transition: all 0.2s ease-in-out;
+}
+
+.circle-btn:hover {
+  background: cyan;
+  color: #001a1a;
+  box-shadow: 0 0 20px cyan, 0 0 30px cyan;
+}
+
+/* Reset rectangular button */
+.restart-btn {
+  height: 45px;                  /* same height as circles */
+  padding: 0 18px;               /* horizontal padding */
+  border: 2px solid cyan;
+  background: #222;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;                 /* flex to center text */
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px cyan;
+  transition: all 0.2s ease-in-out;
+}
+
+.restart-btn:hover {
+  background: cyan;
+  color: #001a1a;
+  box-shadow: 0 0 20px cyan, 0 0 35px cyan;
+}
+
+/* ------------------------------
+   BiddingRoom Team-Themed Styles
+   ------------------------------ */
+.bidding-team-name {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 15px;
+  color: white;
+  text-shadow: 0 0 12px var(--team-color),
+               0 0 24px var(--team-color);
+}
+
+.bidding-table {
+  width: 60%;                        /* keep table width same */
+  margin: 15px auto;
+  border-collapse: collapse;
+  background: rgba(0, 20, 20, 0.95);
+  border: 2px solid var(--team-color);
+  box-shadow: 0 0 15px var(--team-color);
+  table-layout: fixed;               /* enable controlled widths */
+}
+
+/* Header cells */
+.bidding-table th {
+  border: 1px solid var(--team-color);
+  padding: 6px 8px;
+  font-size: 14px;
+  color: white;
+  word-wrap: break-word;
+}
+
+/* Data cells */
+.bidding-table td {
+  border: 1px solid var(--team-color);
+  padding: 25px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  word-wrap: break-word;
+}
+
+/* Column widths */
+.bidding-table th:nth-child(1),
+.bidding-table td:nth-child(1) {
+  width: 25%;                        /* Player */
+}
+
+.bidding-table th:nth-child(2),
+.bidding-table td:nth-child(2) {
+  width: 20%;                        /* Current Bid */
+}
+
+.bidding-table th:nth-child(3),
+.bidding-table td:nth-child(3) {
+  width: 30%;                        /* 🟢 By (more space) */
+}
+
+.bidding-table th:nth-child(4),
+.bidding-table td:nth-child(4) {
+  width: 25%;                        /* Purse */
+}
+
+.circle-btn-large {
+  width: 220px;                /* Bigger than before (160px) */
+  height: 220px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;              /* Slightly larger text */
+  font-weight: bold;
+  color: white;
+  background: transparent;
+  text-shadow: 0 0 6px black;
+  cursor: pointer;
+  border: 3px solid var(--team-color);
+  box-shadow: 0 0 30px var(--team-color), 0 0 60px var(--team-color);
+  margin: 10px 450px 20px auto;
+  margin-top: -150px;    /* Push a bit right and give more space */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.circle-btn-large:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px var(--team-color);
+}
+
+.exit-btn {
+  padding: 14px 28px;
+  margin: 100px auto 0 auto;           /* 🟢 Make Exit button larger */
+  font-size: 18px;
+  font-weight: bold;
+  margin-right: 100px;       /* 🟢 Push Exit to left */
+  border-radius: 8px;
+  border: 2px solid red;
+  background: transparent;
+  color: red;
+  box-shadow: 0 0 15px red;
+}
+.exit-btn:hover {
+  background: red;
+  color: white;
+}
+
+/* ===== Auction Player Section ===== */
+/* Center ellipse image with golden frame */
+/* Central row: Left box - Ellipse - Right status */
+.ellipse-row {
+  display: grid;
+  grid-template-columns: 300px auto 300px;
+  align-items: center;
+  justify-items: center;
+  gap: 40px;
+  margin:20px auto;
+}
+
+/* 3 columns when active bidders are present */
+
+
+/* Name header above ellipse */
+.player-header {
+  font-size: 43px;        /* bigger */
+  font-weight: bold;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.player-header .player-name {
+  font-size: 45px;        /* more prominent */
+  font-weight: bolder;
+  text-decoration: underline;
+}
+
+/* Ellipse frame with gold border and small glow */
+.oval {
+  width: 420px;
+  height: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  grid-column: 2;
+  justify-self: center;
+  align-self: center;
+  margin: 0 auto;
+}
+
+.oval img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 8px solid gold;
+  box-shadow: 0 0 10px gold;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 8px solid gold;
+  box-shadow: 0 0 8px gold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: #222; /* fallback background */
+}
+
+/* Teams / Active Bidders box */
+/* Side box behaves like a mini-table */
+.side-rectangle {
+  min-width: 240px;
+  min-height: 150px;
+  margin-top: 30px;          /* push box downward from ellipse top */
+  display: flex;
+  flex-direction: column;
+  border: 1px solid cyan;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.6);
+  box-shadow: 0 0 12px cyan;
+  overflow: hidden;          /* ensures inner lines don't overflow edges */
+  grid-column: 1;             /* ✅ force always left column */
+  justify-self: end;          /* ✅ align towards center */
+}/* Smaller heading row */
+.side-row.heading-row {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px;
+  border-bottom: 1px solid cyan;  /* cyan divider */
+  box-sizing: border-box;
+}
+
+/* Larger content row */
+.side-row.value-row {
+  width: 100%;
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+/* Status circle to right */
+.status-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 8px solid;       /* thick border instead of fill */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  background: transparent; /* no fill */
+}
+.status-circle.sold {
+  border-color: lime;
+  box-shadow: 0 0 15px lime;
+  color: lime;             /* text green */
+}
+.status-circle.unsold {
+  border-color: red;
+  box-shadow: 0 0 15px red;
+  color: red;              /* text red */
+}
+
+/* Buttons directly under ellipse */
+.button-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+.sold-btn, .unsold-btn {
+  padding: 12px 26px;
+  border-radius: 6px;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.sold-btn { background: green; color: white; }
+.unsold-btn { background: crimson; color: white; }
+.sold-btn:hover { box-shadow: 0 0 15px lime; }
+.unsold-btn:hover { box-shadow: 0 0 15px red; }
+
+/* Info grid as a full rectangle table */
+/* Info Grid */
+.info-grid {
+  width: 70%;                     /* a little wider */
+  margin: 20px auto;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  table-layout: fixed;
+  border: 2px solid cyan;
+  box-shadow: 0 0 15px cyan;
+}
+
+.info-grid td {
+  border: 2px solid cyan;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0;
+}
+
+/* First column narrower */
+.first-col {
+  width: 15%;
+  padding: 0;
+}
+
+/* Inner table (flag / category / role) */
+.inner-col {
+  width: 100%;
+  height: 100%;
+}
+.inner-col td {
+  border: 2px solid cyan;
+  font-weight: bold;
+  font-size: 20px;             /* increased text size */
+  text-align: center;
+  vertical-align: middle;
+  padding: 14px;               /* taller cells */
+}
+
+/* Other 3 columns wider */
+.info-grid td:not(.first-col) {
+  width: 28%;
+  padding: 0;
+}
+
+/* Headings in right 3 columns */
+/* Headings in 2nd, 3rd, 4th columns */
+.heading-row {
+  font-size: 20px;
+  font-weight: bold;
+  border-bottom: 2px solid cyan;  /* cyan line separating */
+  padding: 8px;
+  text-align: center;
+}
+
+/* Values in 2nd, 3rd, 4th columns */
+.value-row {
+  font-size: 30px;
+  font-weight: bold;
+  padding: 16px;   /* ensures enough vertical height */
+  text-align: center;
+}
+
+/* Fourth column cell container */
+.fourth-col {
+  width: 28%;
+  border: 2px solid cyan;
+  padding: 0;
+  text-align: center;
+}
+
+/* 4th col small heading row */
+.fourth-col-heading {
+  font-size: 20px;
+  font-weight: bold;
+  border-bottom: 2px solid cyan;  /* cyan line between rows */
+  padding: 6px;
+  text-align: center;
+}
+
+/* 4th col larger value row */
+.fourth-col-value {
+  font-size: 28px;
+  font-weight: bold;
+  padding: 15px;     /* make row taller */
+  text-align: center;
+}
+
+/* Flag smaller but neat */
+.flag {
+  width: 50px;
+  height: 30px;
+  border: 1px solid cyan;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Reports purse bar */
+.purse-bar {
+  width: 60%;                      /* 🔑 fixed width of page */
+  margin: 15px auto;                /* 🔑 centers horizontally */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 12px;
+  border: 2px solid gray;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  font-weight: bold;
+  box-sizing: border-box;           /* prevents overflow issues */
+}
+/* Players List / Players Bought tables */
+.players-list-table {
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  background: rgba(0,20,20,0.9);
+  box-shadow: 0 0 15px cyan;
+}
+.players-list-table th,
+.players-list-table td {
+  border: 2px solid cyan;
+  padding: 12px;
+  text-align: center;
+  color: white;
+}
+/* ===== Image Dropzone (Player Form Upload) ===== */
+.image-dropzone {
+  width: 220px;
+  height: 260px;
+  border: 3px dashed gray;
+  border-radius: 50%;         /* 🔑 makes it circular */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem auto;
+  cursor: pointer;
+  background: #111;
+  overflow: hidden;
+  text-align: center;
+  color: white;
+}
+
+.image-dropzone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.image-dropzone:focus {
+  outline: 2px dashed cyan;
+}
+
+/* Sidebar close button (identical size/look to page back button) */
+.sidebar-back {
+  position: absolute;
+  top: 20px;
+  right: 140px;              /* ✅ right side inside sidebar */
+  width: 40px;              /* same as original back-btn */
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  border-radius: 50%;
+  border: 2px solid cyan;
+  box-shadow: 0 0 10px cyan;
+  background: rgba(0, 0, 0, 0.6);
+  
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  z-index: 2000;
+  pointer-events: auto;
+}
+
+.sidebar-back:hover {
+  background: cyan;
+  color: #001a1a;
+  transform: scale(1.05);
+}
+.manual-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;     /* left aligned */
+  gap: 10px;
+  margin-right: 30px;          /* leave gap next to ellipse */
+}
+/* Keep left column size stable in manual mode too */
+.manual-input-row,
+.side-rectangle {
+  min-width: 240px;
+  min-height: 150px;
+}
+
+.manual-actions {
+  display: flex;
+  gap: 8px;
+}
+.left-column {
+  grid-column: 1;      /* ❇️ always anchor to left */
+  justify-self: end;   /* ✅ keep it pulled in close to ellipse */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;                /* space between SOLD and UNSOLD */
+  margin-top: 10px;
+}
+/* ✅ History Table Container */
+/* ✅ History table container (fixed height: heading + 3 rows) */
+.history-container {
+  width: 65%;
+  max-height: calc(60px * 4);     /* 1 header row + 3 player rows */
+  overflow-y: auto;               /* vertical scroll only */
+  overflow-x: hidden;             /* no sideways scroll */
+  margin: 20px auto 30px auto;
+  border: 2px solid var(--team-color);
+  box-shadow: 0 0 12px var(--team-color);
+  border-radius: 6px;
+  background: rgba(0, 20, 20, 0.95);
+}
+
+/* History Table */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Make header sticky */
+.history-table thead {
+  position: sticky;
+  top: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1;
+}
+
+/* Uniform row styling */
+.history-table th,
+.history-table td {
+  border: 1px solid var(--team-color);
+  padding: 8px;
+  font-size: 20px;
+  color: white;
+  text-align: center;
+  height: 30px; /* fixed height for each row */
+}
+
+/* Table body scrolls (up & down) */
+.history-table tbody {
+  display: block;
+  max-height: calc(60px * 3); /* Only 3 rows visible in body */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.history-table thead,
+.history-table tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+/* 🔼 Move the entire BiddingRoom content upward */
+.bidding-room {
+  margin-top: 10px;   /* adjust: -20px / -30px / -50px based on how much you want to pull up */
+}
+.form-rows {
+  width: 90%;
+  margin: 10px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;              /* small gap between rows */
+}
+
+.form-row {
+  display: flex;
+  gap: 14px;              /* small gap between bars */
+  justify-content: center;
+}
+
+.form-row .input-box {
+  flex: 1;
+  max-width: 300px;      /* uniform smaller bars */
+  padding: 16px;         /* makes them compact */
+}
+
+/* Scoped Preview Circle for PlayerForm */
+.player-form .preview-circle {
+  margin: 10px auto;
+  width: 300px;          /* smaller than auction page */
+  height: 300px;
+}
+
+/* Action buttons */
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.form-actions .menu-bar {
+  width: 55%;            /* slimmer buttons */
+  padding: 12px 0;
+}
+/* Flex wrapper for image + buttons */
+.preview-section {
+  display: flex;
+  justify-content: center;   /* center whole block */
+  align-items: center;       /* align circle + buttons vertically */
+  gap: 30px;                 /* space between circle & buttons */
+  margin-top: 15px;
+}
+
+/* Buttons stacked on right side of circle */
+.side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-actions .menu-bar {
+  width: 200px;       /* narrower than full bars */
+  padding: 12px;      /* nice height */
+  text-align: center;
+}
+
+.roll-up {
+  display: inline-block;
+  animation: rollUp 0.4s ease forwards;
+}
+
+@keyframes rollUp {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0%); opacity: 1; }
+}
+
+/* Scrollable container for PlayersBoughtPage */
+/* Scrollable container for PlayersBoughtPage */
+.players-bought-container {
+  max-height: 280px;        /* ✅ keeps table shorter */
+  overflow-y: auto;
+  border: 2px solid cyan;
+  border-radius: 6px;
+  margin: 15px auto;
+  width: 80%;               /* narrower width for readability */
+}
+
+/* Sticky header inside scroll */
+.players-bought-container thead {
+  position: sticky;
+  top: 0;
+  background: rgba(0, 20, 20, 0.95);
+  z-index: 1;
+}

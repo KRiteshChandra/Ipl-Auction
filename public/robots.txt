@@ -1,0 +1,4 @@
+# robots.txt
+# 🚫 Block all search engines from indexing the site
+User-agent: *
+Disallow: /
