@@ -2,7 +2,7 @@
 // Shows all room documents + teams in them (admin view).
 //-------------------------------------------------------
 import React, { useEffect, useState } from "react";
-import { listenAllRooms, listenRoom, deleteRoom, removeTeamFromRoom } from "./firestoreRooms";
+import { listenAllRooms, listenRoom, deleteRoom, } from "./firestoreRooms";
 import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 
