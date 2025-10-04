@@ -312,12 +312,47 @@ const handleReset = async () => {
       )}
 
       {page === "hostContinue" && (
-        <div className="center-box">
-          <h2 className="page-title">Continue Auction</h2>
-          <input className="input-box" placeholder="Enter Room ID" value={roomId} onChange={(e) => setRoomId(e.target.value)} />
-          <button className="menu-bar" onClick={() => { if (!roomId) return alert("Enter room ID"); setPage("auctionPlayer"); }}>Continue</button>
-        </div>
-      )}
+  <div className="center-box">
+    <h2 className="page-title">Continue Auction</h2>
+
+    <input
+      className="input-box"
+      placeholder="Enter existing Room ID"
+      value={roomId}
+      onChange={(e) => setRoomId(e.target.value)}
+    />
+
+    <button
+      className="menu-bar"
+      onClick={async () => {
+        if (!roomId.trim()) {
+          alert("⚠️ Please enter a Room ID to continue.");
+          return;
+        }
+
+        try {
+          // 🧹 Clear any local traces of a previous room to avoid stale data
+          localStorage.removeItem("myRoomId");
+          localStorage.removeItem("myTeam");
+
+          // 🧠 Save this Room ID as the current one
+          localStorage.setItem("myRoomId", roomId);
+
+          // 🔄 Reset local state so updated data will load fresh
+          setRoomData(null);
+
+          // ✅ Move into the host auction control screen
+          setPage("auctionPlayer");
+        } catch (err) {
+          console.error("Error continuing auction:", err);
+          alert("🚨 Failed to continue auction. Please try again.");
+        }
+      }}
+    >
+      ▶ Continue
+    </button>
+  </div>
+)}
 
       {page === "hostRoom" && (
         <div className="center-box">
