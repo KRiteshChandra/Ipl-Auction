@@ -355,12 +355,55 @@ const handleReset = async () => {
 )}
 
       {page === "hostRoom" && (
-        <div className="center-box">
-          <h2 className="page-title">Create Room</h2>
-          <input className="input-box" placeholder="Room ID" value={roomId} onChange={(e) => setRoomId(e.target.value)} />
-          <button className="menu-bar" onClick={() => { createRoom(roomId,{ numTeams, budget, maxPlayers, maxOverseas },myDeviceId); setPage("hostConfig"); }}>✅ Create</button>
-        </div>
-      )}
+  <div className="center-box">
+    <h2 className="page-title">Create Room</h2>
+
+    <input
+      className="input-box"
+      placeholder="Enter new Room ID"
+      value={roomId}
+      onChange={(e) => setRoomId(e.target.value)}
+    />
+
+    <button
+      className="menu-bar"
+      onClick={async () => {
+        // ✅ Basic validation
+        if (!roomId.trim()) {
+          alert("⚠️ Please enter a Room ID before creating the room.");
+          return;
+        }
+
+        try {
+          // 🔄 Clear any previous session data
+          localStorage.removeItem("myRoomId");
+          localStorage.removeItem("myTeam");
+
+          // 🧽 Reset local state before starting new auction
+          setRoomData(null);
+
+          // 🆕 Create an empty new room in Firestore
+          await createRoom(
+            roomId,
+            { numTeams, budget, maxPlayers, maxOverseas },
+            myDeviceId
+          );
+
+          // 🧠 Save this new room for the current host device
+          localStorage.setItem("myRoomId", roomId);
+
+          // ✅ Navigate to auction configuration
+          setPage("hostConfig");
+        } catch (error) {
+          console.error("🚨 Error creating room:", error);
+          alert("🚨 Failed to create room. Please check your connection and try again.");
+        }
+      }}
+    >
+      ✅ Create
+    </button>
+  </div>
+)}
 
       {page === "hostConfig" && (
         <div className="center-box">
@@ -449,17 +492,50 @@ const handleReset = async () => {
       )}
 
       {page === "bidding" && (
-        <div className="center-box">
-          <h2>Enter Room ID</h2>
-          <input className="input-box" value={roomId} onChange={(e)=>setRoomId(e.target.value)} />
-          <button className="menu-bar" onClick={()=>{
-            const savedRoom=localStorage.getItem("myRoomId");
-            const savedTeam=localStorage.getItem("myTeam");
-            if(savedRoom && savedTeam && savedRoom===roomId){ setPage("biddingRoom"); }
-            else{ setPage("biddingTeam"); }
-          }}>Next</button>
-        </div>
-      )}
+  <div className="center-box">
+    <h2 className="page-title">Enter Room ID</h2>
+
+    <input
+      className="input-box"
+      placeholder="Enter Room ID"
+      value={roomId}
+      onChange={(e) => setRoomId(e.target.value)}
+    />
+
+    <button
+      className="menu-bar"
+      onClick={() => {
+        // ✅ Validate the Room ID
+        const id = roomId.trim();
+        if (!id) {
+          alert("⚠️ Please enter a valid Room ID to continue.");
+          return;
+        }
+
+        // 🔄 Clear any previous session details (prevents joining old rooms by mistake)
+        localStorage.removeItem("myRoomId");
+        localStorage.removeItem("myTeam");
+
+        // 🧠 Save this new Room ID
+        localStorage.setItem("myRoomId", id);
+
+        // ✅ Decide next page based on whether a team already exists
+        const savedRoom = localStorage.getItem("myRoomId");
+        const savedTeam = localStorage.getItem("myTeam");
+
+        if (savedRoom && savedTeam && savedRoom === id) {
+          // already part of a team in this room → go straight to bidding screen
+          setPage("biddingRoom");
+        } else {
+          // no team info yet → go to team setup
+          setPage("biddingTeam");
+        }
+      }}
+    >
+      ▶ Next
+    </button>
+  </div>
+)}
 
       {page === "biddingTeam" && (
   <BiddingTeamSetup
