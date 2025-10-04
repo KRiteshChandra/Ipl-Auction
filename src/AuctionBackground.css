@@ -14,6 +14,8 @@ html, body {
   background-repeat: no-repeat;    /* ✅ avoid tiling */
   background-size: cover;          /* ✅ stretch across full screen */
   color: white;
+  overflow: hidden;
+  touch-action: none;
 }
 
 .auction-bg {
@@ -894,4 +896,24 @@ html, body {
   top: 0;
   background: rgba(0, 20, 20, 0.95);
   z-index: 1;
+}
+
+@media screen and (orientation: portrait) {
+  #root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  #root::before {
+    content: "📱 Please rotate your device to landscape";
+    font-size: 1.4rem;
+    color: white;
+    padding: 2rem;
+  }
+  /* hide the actual site when portrait */
+  .auction-bg,
+  body > *:not(#root) {
+    display: none !important;
+  }
 }
