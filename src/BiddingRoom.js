@@ -20,20 +20,21 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const thisTeam = roomData?.teams?.[teamName];
 
   // 🔥 If team has been removed from the room by host → kick them back
- useEffect(() => {
-  // wait until Firestore actually sends the teams map
-  if (!roomData || !roomData.teams) return;
+  useEffect(() => {
+    // wait until Firestore actually sends the teams map
+    if (!roomData || !roomData.teams) return;
 
-  const thisTeam = roomData.teams[teamName];
+    const thisTeam = roomData.teams[teamName];
 
-  // alert only when we are already in biddingRoom page and the team truly removed
-  if (page === "biddingRoom" && teamName && !thisTeam) {
-    alert("❌ Your team has been removed from this room by the host.");
-    localStorage.removeItem("myTeam");
-    localStorage.removeItem("myRoomId");
-    setPage("home");
-  }
-}, [roomData, teamName, page, setPage]);
+    // ✅ alert only when the team truly removed
+    if (teamName && !thisTeam) {
+      alert("❌ Your team has been removed from this room by the host.");
+      localStorage.removeItem("myTeam");
+      localStorage.removeItem("myRoomId");
+      setPage("home");
+    }
+  }, [roomData, teamName, setPage]);
+
   // ✅ Early guard: if roomData hasn’t loaded yet
   if (!roomData) {
     return (
