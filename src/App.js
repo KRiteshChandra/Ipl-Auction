@@ -66,7 +66,8 @@ export default function App() {
 
   const [teamName, setTeamName] = useState("");
   const [teamTheme, setTeamTheme] = useState("");
-
+  
+  const [jumpBidAllowed] = useState(false);
   const [selectedSet, setSelectedSet] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
