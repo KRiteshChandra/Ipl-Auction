@@ -375,28 +375,37 @@ const handleReset = async () => {
         }
 
         try {
-          // 🔄 Clear any previous session data
+          // 🔄 Clear any previous local storage session data
           localStorage.removeItem("myRoomId");
           localStorage.removeItem("myTeam");
 
-          // 🧽 Reset local state before starting new auction
-          setRoomData(null);
+          // 🧹 Reset all local states to start a fresh auction
+          setRoomData({
+            teams: {},
+            currentPlayer: null,
+            currentBid: null,
+            currentBidTeam: null,
+            status: null,
+          });
+          setPlayers([]); // ✅ clear any cached player list
 
-          // 🆕 Create an empty new room in Firestore
+          // 🆕 Create a brand‑new Firestore document for this room
           await createRoom(
             roomId,
             { numTeams, budget, maxPlayers, maxOverseas },
             myDeviceId
           );
 
-          // 🧠 Save this new room for the current host device
+          // 🧠 Save this new room ID for the current host device
           localStorage.setItem("myRoomId", roomId);
 
-          // ✅ Navigate to auction configuration
+          // ✅ Proceed to auction configuration page
           setPage("hostConfig");
         } catch (error) {
           console.error("🚨 Error creating room:", error);
-          alert("🚨 Failed to create room. Please check your connection and try again.");
+          alert(
+            "🚨 Failed to create room. Please check your connection and try again."
+          );
         }
       }}
     >
@@ -404,7 +413,6 @@ const handleReset = async () => {
     </button>
   </div>
 )}
-
       {page === "hostConfig" && (
         <div className="center-box">
           <h2>Configure Auction</h2>
@@ -462,34 +470,51 @@ const handleReset = async () => {
 )}
 
       {page === "auctionPlayer" && (
-        roomData ? (
-          <AuctionBackground
-  player={roomData?.currentPlayer}
-  currentBid={roomData?.currentBid}
-  currentBidTeam={roomData?.currentBidTeam}
-  increaseBid={increaseBid}
-  decreaseBid={decreaseBid}
-  handleSold={handleSold}
-  handleUnsold={handleUnsold}
-  handleReset={handleReset}
-  status={roomData?.status}
-  numTeams={numTeams}
-  maxPlayers={maxPlayers}
-  maxOverseas={maxOverseas}
-  budget={budget}
-  teams={roomData?.teams || {}}
-  roomId={roomId}
-  isHost={roomData?.createdBy === myDeviceId}
-  isPrivate={roomData?.accessType === "private"}
-  jumpBidAllowed={roomData?.jumpBidAllowed || false}   // ✅ read directly from Firestore
-  activeBidders={roomData?.activeBidders || []}
-  accessMode={roomData?.accessMode || "max"}
-  roomData={roomData}    // ✅ add this line
-/>
-        ) : (
-          <div className="center-box"><h2>Loading auction…</h2></div>
-        )
-      )}
+  roomData ? (
+    roomData.notFound ? (
+      <div className="center-box">
+        <h2>⚠️ Room not found</h2>
+      </div>
+    ) : (
+      <AuctionBackground
+        /* --- Core player & bid data --- */
+        player={roomData.currentPlayer}
+        currentBid={roomData.currentBid}
+        currentBidTeam={roomData.currentBidTeam}
+
+        /* --- Controls --- */
+        increaseBid={increaseBid}
+        decreaseBid={decreaseBid}
+        handleSold={handleSold}
+        handleUnsold={handleUnsold}
+        handleReset={handleReset}
+
+        /* --- Configuration --- */
+        status={roomData.status}
+        numTeams={numTeams}
+        maxPlayers={maxPlayers}
+        maxOverseas={maxOverseas}
+        budget={budget}
+
+        /* --- Live Teams/Data --- */
+        teams={roomData.teams || {}}
+        roomId={roomId}
+        roomData={roomData}
+
+        /* --- Access / Role info --- */
+        isHost={roomData.createdBy === myDeviceId}
+        isPrivate={roomData.accessType === "private"}
+        jumpBidAllowed={roomData.jumpBidAllowed || false}
+        activeBidders={roomData.activeBidders || []}
+        accessMode={roomData.accessMode || "max"}
+      />
+    )
+  ) : (
+    <div className="center-box">
+      <h2>⏳ Loading auction…</h2>
+    </div>
+  )
+)}
 
       {page === "bidding" && (
   <div className="center-box">
