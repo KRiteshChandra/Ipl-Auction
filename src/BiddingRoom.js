@@ -8,34 +8,40 @@
 
 import React, { useState, useEffect } from "react";
 import "./AuctionBackground.css";
-import { doc, updateDoc } from "firebase/firestore";   // ✅ Firestore
-import { db } from "./firebaseConfig";                 // ✅ Firestore config
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "./firebaseConfig";
 
 export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage }) {
   const [entered, setEntered] = useState(false);
-  const [jumpBid, setJumpBid] = useState(""); // ✅ Track jump bid input
+  const [jumpBid, setJumpBid] = useState("");
 
-  // ✅ Auto rejoin team identity from device localStorage
+  // ✅ Remember this device’s team identity
   const teamName = localStorage.getItem("myTeam");
   const thisTeam = roomData?.teams?.[teamName];
 
-  // 🔥 If team has been removed from the room by host → kick them back
+  // 🔥 If team truly removed by host → redirect home (safe guarded)
   useEffect(() => {
-    // wait until Firestore actually sends the teams map
-    if (!roomData || !roomData.teams) return;
+    if (!roomData || !roomData.teams || !teamName) return;
 
-    const thisTeam = roomData.teams[teamName];
+    const thisTeamInDB = roomData.teams[teamName];
 
-    // ✅ alert only when the team truly removed
-    if (teamName && !thisTeam) {
-      alert("❌ Your team has been removed from this room by the host.");
-      localStorage.removeItem("myTeam");
-      localStorage.removeItem("myRoomId");
-      setPage("home");
+    // Delay a little to avoid false alerts on initial snapshot
+    if (!thisTeamInDB) {
+      const timer = setTimeout(() => {
+        const confirmMissing =
+          roomData?.teams && !roomData.teams[teamName];
+        if (confirmMissing) {
+          alert("❌ Your team has been removed from this room by the host.");
+          localStorage.removeItem("myTeam");
+          localStorage.removeItem("myRoomId");
+          setPage("home");
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [roomData, teamName, setPage]);
 
-  // ✅ Early guard: if roomData hasn’t loaded yet
+  // ✅ Early guard: show joining message until data arrives
   if (!roomData) {
     return (
       <div className="center-box">
@@ -47,17 +53,18 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamTheme = thisTeam?.theme || "gray";
   const purse = thisTeam?.purse ?? 0;
 
-  // Current auction state from Firestore roomData
+  // Auction state from Firestore
   const currentPlayer = roomData?.currentPlayer;
   const currentBid = roomData?.currentBid;
   const currentBidTeam = roomData?.currentBidTeam;
   const status = roomData?.status;
   const auctionMode = roomData?.auctionMode || "auto";
 
+  // Derived data
   const safeHistory = Array.isArray(thisTeam?.history) ? thisTeam.history : [];
   const overseasCount = safeHistory.filter((h) => h.country !== "India").length;
 
-  // ✅ Disable/Fade logic (applies only for *Bid* after Enter)
+  // Disable logic for bidding
   const disabled =
     !currentPlayer ||
     status === "SOLD" ||
@@ -68,11 +75,11 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
     currentBidTeam === teamName ||
     auctionMode === "manual";
 
-  // ✅ Helper function to handle Bid/Jump Bid
+  // ✅ Handle normal + jump bid
   const handleBid = async () => {
     if (!currentPlayer) return;
-    let newBid;
 
+    let newBid;
     if (jumpBid && !isNaN(jumpBid)) {
       const val = Number(jumpBid);
       if (val > 0 && val <= purse) {
@@ -82,13 +89,12 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
         return;
       }
     } else {
-      const increment = currentBid
-        ? currentBid < 100
+      const increment =
+        currentBid < 100
           ? 10
           : currentBid < 1500
           ? 25
-          : 50
-        : currentPlayer?.basePrice;
+          : 50;
       newBid = currentBid ? currentBid + increment : currentPlayer?.basePrice;
     }
 
@@ -120,7 +126,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
             {/* Player name */}
             <td>{currentPlayer?.name || "--"}</td>
 
-            {/* ✅ Animate only the numeric value */}
+            {/* ✅ Animate only numeric value */}
             <td className="roll-up-cell">
               {currentBid !== null && currentBid !== undefined ? (
                 <>
@@ -133,16 +139,16 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
               )}
             </td>
 
-            {/* ✅ “By” column shows the current bidding team */}
+            {/* ✅ “By” column → current bidding team */}
             <td>{currentBidTeam || "--"}</td>
 
-            {/* ✅ Purse shows static current team purse */}
+            {/* ✅ Static purse (remaining budget) */}
             <td>₹{(purse / 100).toFixed(2)} Cr</td>
           </tr>
         </tbody>
       </table>
 
-      {/* ✅ Jump Bid Input (only if host allows and team entered) */}
+      {/* ✅ Jump Bid input (if host allows) */}
       {jumpBidAllowed && entered && (
         <div style={{ margin: "10px" }}>
           <input
@@ -155,7 +161,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
         </div>
       )}
 
-      {/* ===== Enter / Bid Button + Exit controls ===== */}
+      {/* ===== Controls ===== */}
       <div className="bidding-controls">
         <button
           className="exit-btn"
@@ -194,7 +200,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
           }}
           onClick={async () => {
             if (!entered) {
-              // First click: Enter
+              // First click: mark entered
               if (currentPlayer && status !== "SOLD" && status !== "UNSOLD") {
                 setEntered(true);
                 await updateDoc(doc(db, "rooms", roomId), {
@@ -204,7 +210,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
                 });
               }
             } else {
-              // Second click: actual bid (increment or jump bid)
+              // Second click: actual bid
               if (!disabled) handleBid();
             }
           }}
