@@ -21,6 +21,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
 
   // 🔥 If team has been removed from the room by host → kick them back
   useEffect(() => {
+    if (!roomData) return; 
     if (roomData && !thisTeam) {
       alert("❌ Your team has been removed from this room by the host.");
       localStorage.removeItem("myTeam");
