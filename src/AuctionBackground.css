@@ -938,13 +938,24 @@ html, body {
 }
 
 /* 📏 Adjust menu-bar size on short screens (landscape phones / small tablets) */
-@media screen and (max-height: 700px) and (orientation: landscape) {
-  .menu-bar {
-    width: 70vw;
-    padding: 10px 0;
-    font-size: 18px;
-    margin: 10px auto;
-  }
+/* 🌍 Smart responsive scaling for all screens */
+@media screen and (max-width: 1600px) {
+  .auction-bg { transform: scale(0.95); transform-origin: top center; }
+}
+@media screen and (max-width: 1366px) {
+  .auction-bg { transform: scale(0.9); transform-origin: top center; }
+}
+@media screen and (max-width: 1200px) {
+  .auction-bg { transform: scale(0.8); transform-origin: top center; }
+}
+@media screen and (max-width: 1024px) {
+  .auction-bg { transform: scale(0.7); transform-origin: top center; }
+}
+@media screen and (max-width: 768px) {
+  .auction-bg { transform: scale(0.6); transform-origin: top center; }
+}
+@media screen and (max-width: 480px) {
+  .auction-bg { transform: scale(0.5); transform-origin: top center; }
 }
 .scroll-area {
   width: 100%;
