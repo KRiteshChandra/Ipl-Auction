@@ -325,26 +325,29 @@ const handleReset = async () => {
     <button
       className="menu-bar"
       onClick={async () => {
+        // ✅ Basic validation
         if (!roomId.trim()) {
           alert("⚠️ Please enter a Room ID to continue.");
           return;
         }
 
         try {
-          // 🧹 Clear any local traces of a previous room to avoid stale data
+          // 🔄 Clear any stale local‑storage session data first
           localStorage.removeItem("myRoomId");
           localStorage.removeItem("myTeam");
 
-          // 🧠 Save this Room ID as the current one
+          // 🧠 Save this Room ID as the current one for device memory
           localStorage.setItem("myRoomId", roomId);
 
-          // 🔄 Reset local state so updated data will load fresh
+          // 🧹 Reset local state so listener reloads fresh
           setRoomData(null);
+          setPlayers([]); // optional refresh of player list for safety
 
-          // ✅ Move into the host auction control screen
+          // ✅ Navigate straight to the host’s auction screen
+          // The Firestore listener (listenRoom) will populate roomData automatically
           setPage("auctionPlayer");
         } catch (err) {
-          console.error("Error continuing auction:", err);
+          console.error("🚨 Error continuing auction:", err);
           alert("🚨 Failed to continue auction. Please try again.");
         }
       }}
@@ -375,7 +378,7 @@ const handleReset = async () => {
         }
 
         try {
-          // 🔄 Clear any previous local storage session data
+          // 🔄 Clear any previous local‑storage session data
           localStorage.removeItem("myRoomId");
           localStorage.removeItem("myTeam");
 
@@ -387,7 +390,7 @@ const handleReset = async () => {
             currentBidTeam: null,
             status: null,
           });
-          setPlayers([]); // clear any cached player list temporarily
+          setPlayers([]);            // clear any cached player list temporarily
 
           // 🆕 Create a new Firestore document for this room
           await createRoom(
@@ -399,7 +402,7 @@ const handleReset = async () => {
           // 🧠 Save this new room ID locally
           localStorage.setItem("myRoomId", roomId);
 
-          // ♻️ Reset player SOLD data but keep full player list
+          // ♻️ Reset player SOLD data but keep full player list intact
           const { collection, getDocs, updateDoc } = await import("firebase/firestore");
           const { db } = await import("./firebaseConfig");
 
@@ -414,11 +417,13 @@ const handleReset = async () => {
             });
           }
 
-          // ✅ Navigate to configuration page
+          // ✅ Navigate straight to the configuration page
           setPage("hostConfig");
         } catch (error) {
           console.error("🚨 Error creating room:", error);
-          alert("🚨 Failed to create room. Please check your connection and try again.");
+          alert(
+            "🚨 Failed to create room. Please check your connection and try again."
+          );
         }
       }}
     >
@@ -550,31 +555,33 @@ const handleReset = async () => {
           return;
         }
 
-        // 🔄 Clear any previous session details (prevents joining old rooms by mistake)
-        localStorage.removeItem("myRoomId");
-        localStorage.removeItem("myTeam");
-
-        // 🧠 Save this new Room ID
-        localStorage.setItem("myRoomId", id);
-
-        // ✅ Decide next page based on whether a team already exists
+        // 🔍 Check existing memory before clearing anything
         const savedRoom = localStorage.getItem("myRoomId");
         const savedTeam = localStorage.getItem("myTeam");
 
-        if (savedRoom && savedTeam && savedRoom === id) {
-          // already part of a team in this room → go straight to bidding screen
-          setPage("biddingRoom");
-        } else {
-          // no team info yet → go to team setup
-          setPage("biddingTeam");
+        // 🧠 If this device already has a team for the same room, reuse it
+        if (savedRoom === id && savedTeam) {
+          setRoomId(id);
+          setPage("biddingRoom"); // ✅ skip team setup, go straight to bidding
+          return;
         }
+
+        // 🧹 Different room (or first time) → reset and start fresh
+        localStorage.removeItem("myRoomId");
+        localStorage.removeItem("myTeam");
+
+        // 🔄 Save this new Room ID for current session
+        localStorage.setItem("myRoomId", id);
+
+        // 🟢 Move to team setup to join the room
+        setRoomId(id);
+        setPage("biddingTeam");
       }}
     >
       ▶ Next
     </button>
   </div>
 )}
-
       {page === "biddingTeam" && (
   <BiddingTeamSetup
     teamName={teamName}
@@ -583,15 +590,41 @@ const handleReset = async () => {
     setTeamTheme={setTeamTheme}
     onEnter={async (teamObj) => {
       try {
+        // 🧠 Make sure a valid roomId exists
+        if (!roomId || !roomId.trim()) {
+          alert("⚠️ Room ID not found. Please enter Room ID again.");
+          setPage("bidding"); // send back to ID entry
+          return;
+        }
+
+        // ✅ Prevent duplicate registration for same device + room
+        const savedRoom = localStorage.getItem("myRoomId");
+        const savedTeam = localStorage.getItem("myTeam");
+        if (savedRoom === roomId && savedTeam === teamObj.name) {
+          setPage("biddingRoom"); // already registered → skip
+          return;
+        }
+
+        // 🆕 Attempt to join the current room in Firestore
         await joinRoom(roomId, teamObj);
+
+        // 💾 Save identity for this device
         localStorage.setItem("myTeam", teamObj.name);
         localStorage.setItem("myRoomId", roomId);
+
+        // ✅ Move to the bidding screen
         setPage("biddingRoom");
       } catch (err) {
+        console.error("Error joining room:", err);
+
         if (err.message.includes("Maximum number of teams")) {
           alert(`❌ Room is full. Maximum ${numTeams} teams are allowed.`);
+        } else if (err.message.includes("already exists")) {
+          alert("❌ This team name already exists in this room. Choose another.");
+        } else if (err.message.includes("not found")) {
+          alert("❌ Room not found. Check the Room ID again.");
         } else {
-          alert(err.message);
+          alert("🚨 Failed to join room. Please try again.");
         }
       }
     }}
