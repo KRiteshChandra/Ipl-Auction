@@ -46,25 +46,39 @@ export default function BiddingTeamSetup({
       />
 
       <div style={{ margin: "20px" }}>
-        <h3 className="page-subtitle">Select Team Theme</h3>
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
-          {themes.map((color) => (
-            <div
-              key={color}
-              onClick={() => setTeamTheme(color)}
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                background: color,
-                border:
-                  teamTheme === color ? "3px solid white" : "2px solid gray",
-                cursor: "pointer",
-              }}
-            />
-          ))}
-        </div>
-      </div>
+  <h3 className="page-subtitle">Select Team Theme</h3>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(5, 1fr)", // ✅ always 5 per row
+      justifyItems: "center",                // ✅ center each circle
+      alignItems: "center",
+      rowGap: "14px",                        // ✅ vertical spacing
+      maxWidth: "320px",                     // ✅ keeps grid compact and centered
+      margin: "0 auto"                       // ✅ centers grid block itself
+    }}
+  >
+    {themes.map((color) => (
+      <div
+        key={color}
+        onClick={() => setTeamTheme(color)}
+        style={{
+          width: "40px",
+          height: "40px",
+          borderRadius: "50%",
+          background: color,
+          border:
+            teamTheme === color ? "3px solid white" : "2px solid gray",
+          boxShadow:
+            teamTheme === color ? `0 0 8px ${color}` : "none",
+          cursor: "pointer",
+          transition: "transform 0.2s ease",
+        }}
+      />
+    ))}
+  </div>
+</div>
 
       <button
         className="menu-bar"
