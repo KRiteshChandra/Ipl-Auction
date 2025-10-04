@@ -16,15 +16,21 @@ export default function RemainingPursePage({ teams }) {
       <h2 className="page-title">Remaining Purse (in Crores)</h2>
       
       {list.length === 0 && <p>No teams joined yet</p>}
-      
-      {list.map((t, idx) => (
-        <div key={idx} className="purse-bar"
-          style={{ borderColor: t.theme, boxShadow: `0 0 12px ${t.theme}` }}>
-          <span>{t.name}</span>
-          {/* ✅ Convert Lakhs → Crores only */}
-          <span>₹{(t.purse / 100).toFixed(2)} Cr</span>
-        </div>
-      ))}
+
+      {/* ✅ Scrollable container for team purse bars */}
+      <div className="scroll-area" style={{ marginTop: "15px" }}>
+        {list.map((t, idx) => (
+          <div
+            key={idx}
+            className="purse-bar"
+            style={{ borderColor: t.theme, boxShadow: `0 0 12px ${t.theme}` }}
+          >
+            <span>{t.name}</span>
+            {/* ✅ Convert Lakhs → Crores only */}
+            <span>₹{(t.purse / 100).toFixed(2)} Cr</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
