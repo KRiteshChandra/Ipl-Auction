@@ -81,7 +81,9 @@ function Dashboard({ players, onCreate, onEdit, onDelete, goBack }) {
         onChange={(e) => setSearch(e.target.value)}
         placeholder="🔍 Search"
       />
-      <div style={{ marginTop: "15px" }}>
+
+      {/* ✅ Scrollable list area */}
+      <div className="scroll-area" style={{ marginTop: "15px" }}>
         {filtered.map((p, idx) => (
           <div key={p.id || idx} className="player-bar">
             <span
