@@ -632,8 +632,14 @@ const handleReset = async () => {
 )}
 
       {page === "biddingRoom" && (
-        <BiddingRoom roomData={roomData} roomId={roomId} jumpBidAllowed={jumpBidAllowed} />
-      )}
+  <BiddingRoom
+    roomData={roomData}
+    roomId={roomId}
+    jumpBidAllowed={jumpBidAllowed}
+    setPage={setPage}
+    page={page}          // ✅ safely passes page
+  />
+)}
 
       {page === "playersList" && <PlayersListPage players={players} />}
       {page === "remainingPurse" && <RemainingPursePage teams={roomData?.teams || {}} />}
