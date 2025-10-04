@@ -293,25 +293,39 @@ export default function AuctionBackground({
               </table>
             </td>
             <td>
-              <div className="heading-row">Base Price</div>
-              <div className="value-row">₹ {player?.basePrice} Lakhs</div>
-            </td>
-            <td>
-              <div className="heading-row">{status === "SOLD" ? "Final Bid" : "Current Bid"}</div>
-              {/* 🔢 Animate Current/Final Bid */}
-              <div key={currentBid} className="value-row roll-up">
-                ₹ {currentBid !== null ? currentBid : ""} Lakhs
-              </div>
-            </td>
-            <td className="fourth-col">
-              <div className="fourth-col-heading">
-                {status === "SOLD" ? "Winning Team" : "With"}
-              </div>
-              {/* 🔢 Animate Team Name */}
-              <div key={currentBidTeam} className="fourth-col-value roll-up">
-                {currentBidTeam || ""}
-              </div>
-            </td>
+  <div className="heading-row">Base Price</div>
+  <div className="value-row">₹ {player?.basePrice} Lakhs</div>
+</td>
+
+<td>
+  <div className="heading-row">
+    {status === "SOLD" ? "Final Bid" : "Current Bid"}
+  </div>
+
+  {/* ✅ Animate only the numeric value; ₹ and Lakhs remain static */}
+  <div className="value-row roll-up-cell">
+    {currentBid !== null && currentBid !== undefined ? (
+      <>
+        <span className="currency">₹</span>
+        <span className="roll-up">{currentBid}</span>
+        <span>&nbsp;Lakhs</span>
+      </>
+    ) : (
+      ""
+    )}
+  </div>
+</td>
+
+<td className="fourth-col">
+  <div className="fourth-col-heading">
+    {status === "SOLD" ? "Winning Team" : "With"}
+  </div>
+
+  {/* ✅ Static team name (no animation flicker) */}
+  <div className="fourth-col-value">
+    {currentBidTeam || ""}
+  </div>
+</td>
           </tr>
         </tbody>
       </table>
