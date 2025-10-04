@@ -860,14 +860,27 @@ html, body {
   text-align: center;
 }
 
-.roll-up {
+/* === Numeric roll animation (digits only) === */
+
+.roll-up-cell .currency,
+.roll-up-cell span:last-child {
   display: inline-block;
-  animation: rollUp 0.4s ease forwards;
+  vertical-align: baseline;
 }
 
-@keyframes rollUp {
-  0% { transform: translateY(100%); opacity: 0; }
-  100% { transform: translateY(0%); opacity: 1; }
+.roll-up {
+  display: inline-block;
+  animation: rollNum 0.4s ease;
+  vertical-align: baseline;
+}
+
+@keyframes rollNum {
+  0% { transform: translateY(-20%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.roll-up-cell {
+  text-align: center;
 }
 
 /* Scrollable container for PlayersBoughtPage */
