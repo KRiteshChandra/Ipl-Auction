@@ -3,7 +3,7 @@
 //-------------------------------------------------------
 import { db } from "./firebaseConfig";
 import {
-  doc, setDoc, getDoc, updateDoc,
+  doc, setDoc, updateDoc,
   deleteDoc, onSnapshot, collection,
   runTransaction, deleteField
 } from "firebase/firestore";
