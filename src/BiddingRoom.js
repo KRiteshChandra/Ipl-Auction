@@ -19,25 +19,30 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamName = localStorage.getItem("myTeam");
   const thisTeam = roomData?.teams?.[teamName];
 
-  // 🔥 If team truly removed by host → redirect home (safe guarded)
+  // 🔥 Corrected "team removed" check — prevents repeated false alerts
   useEffect(() => {
     if (!roomData || !roomData.teams || !teamName) return;
 
-    const thisTeamInDB = roomData.teams[teamName];
+    // if there are no teams yet in Firestore snapshot, exit silently
+    const allTeams = Object.keys(roomData.teams);
+    if (allTeams.length === 0) return;
 
-    // Delay a little to avoid false alerts on initial snapshot
-    if (!thisTeamInDB) {
-      const timer = setTimeout(() => {
-        const confirmMissing =
-          roomData?.teams && !roomData.teams[teamName];
-        if (confirmMissing) {
-          alert("❌ Your team has been removed from this room by the host.");
-          localStorage.removeItem("myTeam");
-          localStorage.removeItem("myRoomId");
-          setPage("home");
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+    const exists = !!roomData.teams[teamName];
+    const everExisted = localStorage.getItem("teamEverExisted");
+
+    if (exists) {
+      // mark that this device/team has appeared in snapshot
+      localStorage.setItem("teamEverExisted", "true");
+      return;
+    }
+
+    // show alert only if the team previously existed but is now missing
+    if (everExisted && !exists) {
+      alert("❌ Your team has been removed from this room by the host.");
+      localStorage.removeItem("teamEverExisted");
+      localStorage.removeItem("myTeam");
+      localStorage.removeItem("myRoomId");
+      setPage("home");
     }
   }, [roomData, teamName, setPage]);
 
