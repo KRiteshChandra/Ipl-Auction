@@ -971,3 +971,13 @@ html, body {
   background: rgba(0,255,255,0.4);
   border-radius: 3px;
 }
+/* Center wrapper for scaled layout */
+.scale-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #033d3d, #001a1a); /* match your theme */
+}
