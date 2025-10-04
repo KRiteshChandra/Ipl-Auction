@@ -111,10 +111,32 @@ export function listenRoom(roomId, callback) {
 }
 
 // 👂 Listen to all rooms overview
-export function listenAllRooms(callback) {
-  return onSnapshot(collection(db, "rooms"), (snap) => {
-    callback(
-      snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))  // ✅ include id
-    );
+// 👂 Listen to single room changes
+export function listenRoom(roomId, callback) {
+  return onSnapshot(doc(db, "rooms", roomId), (snap) => {
+    if (!snap.exists()) {
+      callback({ notFound: true });   // ✅ explicit fallback object
+      return;
+    }
+    const data = snap.data();
+
+    // sanitize currentPlayer
+    let safePlayer = null;
+    if (data.currentPlayer) {
+      const p = data.currentPlayer;
+      safePlayer = {
+        id: p?.id || null,
+        name: p?.name || "",
+        jerseyNumber: p?.jerseyNumber || "",
+        playerSet: p?.playerSet || "",
+        category: p?.category || "",
+        role: p?.role || "",
+        basePrice: Number(p?.basePrice) || 0,
+        country: p?.country || "",
+        imageURL: p?.imageURL || null,
+      };
+    }
+
+    callback({ id: snap.id, ...data, currentPlayer: safePlayer });
   });
 }
