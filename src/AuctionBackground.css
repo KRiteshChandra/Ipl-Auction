@@ -20,20 +20,27 @@ html, body {
 
 /* --- Common background for every screen --- */
 .auction-bg {
-  width: 100vw;
-  height: 100vh;               /* use fixed viewport height */
+  /* Keep the core layout and gradient */
+  width: 1366px;                /* fixed desktop design width */
+  height: 768px;                /* fixed desktop design height */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   position: relative;
-  overflow: hidden;            /* block scrolling everywhere by default */
+
+  /* prevent scroll on the main background; scroll only where class="scroll-area" */
+  overflow: hidden;
+
+  /* gradient background retained */
   background: linear-gradient(180deg, #033d3d, #001a1a);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
-}
 
+  /* setup for proportional scaling */
+  transform-origin: top center;
+}
 .center-box {
   text-align:center;
   margin:auto;
