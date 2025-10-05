@@ -3,19 +3,29 @@ Styling for entire Auction / Bidding UI
 -------------------------------------------------------*/
 
 /* ===== GLOBAL ===== */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   font-family: 'Segoe UI', sans-serif;
+
+  /* Unified gradient background */
   background: linear-gradient(180deg, #033d3d, #001a1a);
-  background-attachment: fixed;    /* ✅ keep background fixed */
-  background-repeat: no-repeat;    /* ✅ avoid tiling */
-  background-size: cover;          /* ✅ stretch across full screen */
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;        /* fixed on desktop */
+
+  /* Text / color defaults */
   color: white;
+
+  /* Prevents undesired scroll but keeps touch interactions smooth */
   overflow: hidden;
-  touch-action: none;
+  -webkit-overflow-scrolling: touch;   /* smoother on iOS */
+  touch-action: pan-x pan-y;           /* allows normal scrolling if needed */
+  box-sizing: border-box;
 }
 
 /* --- Common background for every screen --- */
@@ -964,8 +974,8 @@ html, body {
 }
 /* Center wrapper for scaled layout */
 .auction-bg {
-  width: 1366px;             /* original desktop design width */
-  height: 768px;             /* original desktop design height */
+  width: 1366px;                /* desktop design width */
+  height: 768px;                /* desktop design height */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -973,6 +983,7 @@ html, body {
   position: relative;
   overflow: hidden;
 
+  /* gradient background */
   background: linear-gradient(180deg, #033d3d, #001a1a);
   background-repeat: no-repeat;
   background-size: cover;
@@ -981,18 +992,32 @@ html, body {
 
   transform-origin: top center;
   transition: transform 0.3s ease;
+  box-sizing: border-box;
 }
 
-/* 📱 shrink proportionally by width on smaller screens */
-@media screen and (max-width: 1366px) {
+/* 💻 Full‑size layout for laptop / desktop screens */
+@media screen and (min-width: 1367px) {
   .auction-bg {
-    transform: scale(calc(100vw / 1366));
+    transform: scale(1);
+    margin: 0 auto;
   }
 }
 
-/* 📺 ensure height always fits in low-height landscape displays */
+/* 📱 Auto‑scale proportionally for tablets / phones */
+@media screen and (max-width: 1366px) {
+  .auction-bg {
+    transform: scale(
+      min(calc(100vw / 1366), calc(100vh / 768))
+    );
+    background-attachment: scroll;  /* avoids mobile "fixed" flicker */
+  }
+}
+
+/* 🔒 Ensure very short landscape screens fit vertically */
 @media screen and (orientation: landscape) and (max-height: 768px) {
   .auction-bg {
-    transform: scale(calc(100vh / 768));
+    transform: scale(
+      min(calc(100vw / 1366), calc(100vh / 768))
+    );
   }
 }
