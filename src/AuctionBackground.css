@@ -975,15 +975,18 @@ body {
 /* Center wrapper for scaled layout */
 .auction-bg {
   width: 1366px;                /* desktop design width */
-  height: 768px;                /* desktop design height */
+  min-height: 768px;            /* base design height */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   position: relative;
-  overflow: hidden;
 
-  /* gradient background */
+  /* ✅ Let content scroll vertically now */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Background */
   background: linear-gradient(180deg, #033d3d, #001a1a);
   background-repeat: no-repeat;
   background-size: cover;
@@ -1003,21 +1006,11 @@ body {
   }
 }
 
-/* 📱 Auto‑scale proportionally for tablets / phones */
+/* 📱 Fit‑width scaling only (allows vertical scrolling) */
 @media screen and (max-width: 1366px) {
   .auction-bg {
-    transform: scale(
-      min(calc(100vw / 1366), calc(100vh / 768))
-    );
-    background-attachment: scroll;  /* avoids mobile "fixed" flicker */
-  }
-}
-
-/* 🔒 Ensure very short landscape screens fit vertically */
-@media screen and (orientation: landscape) and (max-height: 768px) {
-  .auction-bg {
-    transform: scale(
-      min(calc(100vw / 1366), calc(100vh / 768))
-    );
+    transform: scale(calc(100vw / 1366));  /* shrink based on width only */
+    transform-origin: top left;
+    background-attachment: scroll;         /* fix flicker on mobile */
   }
 }
