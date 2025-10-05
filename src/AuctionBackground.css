@@ -973,30 +973,6 @@ body {
   border-radius: 3px;
 }
 /* Center wrapper for scaled layout */
-.auction-bg {
-  width: 1366px;                /* desktop design width */
-  min-height: 768px;            /* base design height */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  position: relative;
-
-  /* ✅ Let content scroll vertically now */
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  /* Background */
-  background: linear-gradient(180deg, #033d3d, #001a1a);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-
-  transform-origin: top center;
-  transition: transform 0.3s ease;
-  box-sizing: border-box;
-}
 
 /* 💻 Full‑size layout for laptop / desktop screens */
 @media screen and (min-width: 1367px) {
