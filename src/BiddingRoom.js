@@ -34,10 +34,10 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamTheme = thisTeam?.theme || "gray";
   const purse = thisTeam?.purse ?? 0;
 
-  // Auction state from Firestore (read directly so all devices update live)
+  // 🔄 Live Firestore data (direct for full sync across devices)
   const currentPlayer = roomData?.currentPlayer;
-  const currentBid = roomData?.currentBid;           // ⬅ live shared value
-  const currentBidTeam = roomData?.currentBidTeam;   // ⬅ live shared value
+  const currentBid = Number(roomData?.currentBid ?? 0);
+  const currentBidTeam = roomData?.currentBidTeam || "";
   const status = roomData?.status;
   const auctionMode = roomData?.auctionMode || "auto";
 
@@ -74,12 +74,14 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
           : (currentBid || currentPlayer?.basePrice) < 1500
           ? 25
           : 50;
-      newBid = currentBid ? currentBid + increment : currentPlayer?.basePrice;
+      newBid = currentBid
+        ? currentBid + increment
+        : Number(currentPlayer?.basePrice);
     }
 
-    // ✅ make sure both fields are written exactly as host uses
+    // ✅ same field names + make sure bid is numeric
     await updateDoc(doc(db, "rooms", roomId), {
-      currentBid: newBid,
+      currentBid: Number(newBid),
       currentBidTeam: teamName,
     });
 
@@ -103,11 +105,12 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
         </thead>
         <tbody>
           <tr>
+            {/* Player name */}
             <td>{currentPlayer?.name || "--"}</td>
 
-            {/* ✅ Connected live to Firestore currentBid */}
+            {/* ✅ Live Current Bid (identical markup to host Info‑Grid) */}
             <td className="roll-up-cell">
-              {currentBid !== null && currentBid !== undefined ? (
+              {currentBid ? (
                 <>
                   <span className="currency">₹</span>
                   <span className="roll-up">{currentBid}</span>
@@ -118,9 +121,10 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
               )}
             </td>
 
-            {/* ✅ Connected live to Firestore currentBidTeam */}
-            <td>{currentBidTeam || "--"}</td>
+            {/* ✅ Live By / With (identical to host Info‑Grid) */}
+            <td className="fourth-col-value">{currentBidTeam || "--"}</td>
 
+            {/* Remaining purse */}
             <td>₹{(purse / 100).toFixed(2)} Cr</td>
           </tr>
         </tbody>
@@ -147,7 +151,9 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
             setEntered(false);
             if (roomData?.activeBidders) {
               await updateDoc(doc(db, "rooms", roomId), {
-                activeBidders: roomData.activeBidders.filter((t) => t !== teamName),
+                activeBidders: roomData.activeBidders.filter(
+                  (t) => t !== teamName
+                ),
               });
             }
           }}
