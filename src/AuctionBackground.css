@@ -30,28 +30,30 @@ body {
 
 /* --- Common background for every screen --- */
 .auction-bg {
-  width: 99vw;               /* 99 % of viewport width */
-  height: 97vh;              /* 97 % of viewport height */
+  /* Fluid, centered container */
+  width: min(1366px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+
+  /* Layout */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   position: relative;
-  overflow: hidden;
+  box-sizing: border-box;
 
-  /* fixed‑style gradient background */
+  /* Scrolling inside the container (body can stay overflow: hidden) */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  /* Background (use scroll to avoid iOS jitter) */
   background: linear-gradient(180deg, #033d3d, #001a1a);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;   /* fixed on desktop */
-  
-  /* Mobile “fixed background” stability fix */
-  backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-
-  box-sizing: border-box;
-  transform-origin: top center;
+  background-attachment: scroll;
 }
 .center-box {
   text-align:center;
@@ -239,16 +241,23 @@ body {
 
 /* ===== Top-right controls (+/-/Reset) ===== */
 /* Container for - Reset + */
+/* Pin to top-right of the viewport (with safe-area support) */
 .top-right-controls {
-  position: absolute;  /* Fix in page */
-  top: 20px;           /* distance from top */
-  right: 20px;         /* distance from right */
-  display: flex;       /* arrange in row */
+  position: fixed;
+  top: 20px;                  /* fallback */
+  right: 20px;                /* fallback */
+
+  /* safe-area overrides (supported on modern mobile browsers) */
+  top: calc(20px + env(safe-area-inset-top));
+  right: calc(20px + env(safe-area-inset-right));
+
+  display: flex;
   align-items: center;
-  gap: 12px;           /* space between buttons */
+  gap: 12px;
+  z-index: 3000;              /* stay above content */
 }
 
-/* - and + circle buttons */
+/* Center +/- inside the circle reliably */
 .circle-btn {
   width: 50px;
   height: 50px;
@@ -256,13 +265,17 @@ body {
   background: #222;
   color: white;
   font-size: 22px;
-  text-align: center;
-  line-height: 45px;           /* center the minus/plus */
   cursor: pointer;
   box-shadow: 0 0 12px cyan;
   transition: all 0.2s ease-in-out;
-}
 
+  /* perfect centering */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+}
 .circle-btn:hover {
   background: cyan;
   color: #001a1a;
@@ -355,6 +368,7 @@ body {
   width: 25%;                        /* Purse */
 }
 
+/* Base (keeps current laptop/desktop layout) */
 .circle-btn-large {
   width: 220px;                /* Bigger than before (160px) */
   height: 220px;
@@ -373,6 +387,18 @@ body {
   margin: 10px 450px 20px auto;
   margin-top: -150px;    /* Push a bit right and give more space */
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* Mobile-only fix (centers and removes negative offset) */
+@media (max-width: 900px) {
+  .circle-btn-large {
+    margin: 16px auto 20px auto;  /* center horizontally */
+    margin-top: 16px;             /* explicitly override the negative top */
+    /* Optional: slightly smaller on small phones
+       width: 200px;
+       height: 200px;
+    */
+  }
 }
 .circle-btn-large:hover {
   transform: scale(1.05);
@@ -769,12 +795,15 @@ body {
 /* ✅ History table container (fixed height: heading + 3 rows) */
 .history-container {
   width: 65%;
-  max-height: calc(60px * 4);     /* 1 header row + 3 player rows */
-  overflow-y: auto;               /* vertical scroll only */
+  max-height: calc(60px * 4);     /* 1 header row + 3 body rows */
+  overflow-y: auto;               /* vertical scroll only inside this box */
   overflow-x: hidden;             /* no sideways scroll */
+  -webkit-overflow-scrolling: touch; /* smooth on iOS */
+  overscroll-behavior: contain;      /* prevent page from scrolling with it */
+
   margin: 20px auto 30px auto;
-  border: 2px solid var(--team-color);
-  box-shadow: 0 0 12px var(--team-color);
+  border: 2px solid var(--team-color, cyan);
+  box-shadow: 0 0 12px var(--team-color, cyan);
   border-radius: 6px;
   background: rgba(0, 20, 20, 0.95);
 }
@@ -783,46 +812,42 @@ body {
 .history-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* equal column widths and aligned header/body */
 }
 
-/* Make header sticky */
-.history-table thead {
+/* Sticky header cells */
+.history-table thead th {
   position: sticky;
   top: 0;
   background: rgba(0, 0, 0, 0.7);
   z-index: 1;
 }
 
-/* Uniform row styling */
+/* Uniform row styling and fixed row height */
 .history-table th,
 .history-table td {
-  border: 1px solid var(--team-color);
+  border: 1px solid var(--team-color, cyan);
+  height: 60px;               /* fixed height for header and each body row */
   padding: 8px;
   font-size: 20px;
   color: white;
   text-align: center;
-  height: 30px; /* fixed height for each row */
+  vertical-align: middle;
+
+  white-space: nowrap;         /* prevent rows from growing in height */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Table body scrolls (up & down) */
-.history-table tbody {
-  display: block;
-  max-height: calc(60px * 3); /* Only 3 rows visible in body */
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.history-table thead,
-.history-table tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
+/* IMPORTANT: Remove any previous rules that made tbody scroll or block-level
+   (e.g., .history-table tbody { display:block; ... } and
+   thead/tbody tr { display:table; ... }) */
 /* 🔼 Move the entire BiddingRoom content upward */
 .bidding-room {
   margin-top: 10px;   /* adjust: -20px / -30px / -50px based on how much you want to pull up */
 }
-.form-rows {
+/* Scoped to Player Form only */
+.player-form .form-rows {
   width: 90%;
   margin: 10px auto;
   display: flex;
@@ -830,13 +855,13 @@ body {
   gap: 8px;              /* small gap between rows */
 }
 
-.form-row {
+.player-form .form-row {
   display: flex;
-  gap: 14px;              /* small gap between bars */
+  gap: 14px;             /* small gap between bars */
   justify-content: center;
 }
 
-.form-row .input-box {
+.player-form .form-row .input-box {
   flex: 1;
   max-width: 300px;      /* uniform smaller bars */
   padding: 16px;         /* makes them compact */
@@ -849,8 +874,8 @@ body {
   height: 300px;
 }
 
-/* Action buttons */
-.form-actions {
+/* Action buttons (scoped) */
+.player-form .form-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -858,9 +883,13 @@ body {
   margin-top: 5px;
 }
 
-.form-actions .menu-bar {
+.player-form .form-actions .menu-bar {
   width: 55%;            /* slimmer buttons */
   padding: 12px 0;
+}
+
+@media (max-width: 700px) {
+  .player-form .form-row { flex-wrap: wrap; }
 }
 /* Flex wrapper for image + buttons */
 .preview-section {
@@ -910,20 +939,38 @@ body {
 /* Scrollable container for PlayersBoughtPage */
 /* Scrollable container for PlayersBoughtPage */
 .players-bought-container {
-  max-height: 280px;        /* ✅ keeps table shorter */
+  max-height: 280px;        /* keeps table shorter */
   overflow-y: auto;
+  overflow-x: hidden;       /* prevent sideways scroll */
   border: 2px solid cyan;
   border-radius: 6px;
   margin: 15px auto;
-  width: 80%;               /* narrower width for readability */
+  width: 80%;
+  -webkit-overflow-scrolling: touch;  /* smooth on iOS */
+  overscroll-behavior: contain;       /* avoid page scroll chaining */
 }
 
-/* Sticky header inside scroll */
-.players-bought-container thead {
+/* Ensure aligned columns inside the scroll container */
+.players-bought-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* Reliable sticky header */
+.players-bought-container thead th {
   position: sticky;
   top: 0;
   background: rgba(0, 20, 20, 0.95);
   z-index: 1;
+}
+
+/* Optional: protect against overflow in tight columns */
+.players-bought-container th,
+.players-bought-container td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 🔁 When the device is vertical (portrait), ask user to rotate */
@@ -972,21 +1019,111 @@ body {
   background: rgba(0,255,255,0.4);
   border-radius: 3px;
 }
-/* Center wrapper for scaled layout */
+@media (max-width: 900px) {
+.ellipse-row {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+.oval {
+width: min(380px, 80vw);
+height: min(380px, 80vw);
+}
+.status-circle {
+width: min(200px, 44vw);
+height: min(200px, 44vw);
+}
+}
+@media (max-width: 900px) {
+  .image-dropzone {
+    width: min(240px, 70vw);
+    height: auto;            /* stop forcing 260px */
+    aspect-ratio: 1 / 1;     /* circular on mobile only */
+  }
+}
+@media (max-width: 900px) {
+  /* Stack the three sections vertically on mobile */
+  .ellipse-row {
+    display: flex;                 /* override grid */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
 
-/* 💻 Full‑size layout for laptop / desktop screens */
-@media screen and (min-width: 1367px) {
-  .auction-bg {
-    transform: scale(1);
+  /* Scale the main ellipse nicely on small screens */
+  .oval {
+    width: min(420px, 80vw);
+    height: min(420px, 80vw);
+    margin: 0 auto;
+    grid-column: auto;             /* neutralize grid placement */
+  }
+
+  /* Center and size the status circle */
+  .status-circle {
+    width: min(180px, 44vw);
+    height: min(180px, 44vw);
     margin: 0 auto;
   }
-}
 
-/* 📱 Fit‑width scaling only (allows vertical scrolling) */
-@media screen and (max-width: 1366px) {
-  .auction-bg {
-    transform: scale(calc(100vw / 1366));  /* shrink based on width only */
-    transform-origin: top left;
-    background-attachment: scroll;         /* fix flicker on mobile */
+  /* Left-side info box: make it a centered block */
+  .side-rectangle {
+    width: min(560px, 92vw);
+    margin: 0 auto;
+  }
+
+  /* Action buttons under ellipse: allow wrap on small screens */
+  .button-row {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 }
+/* Keep the back button clear of notches on mobile */
+.back-btn {
+  top: calc(20px + env(safe-area-inset-top));
+  left: calc(20px + env(safe-area-inset-left));
+}
+/* Prevent wrapping/overflow in tight widths */
+.bidding-table th,
+.bidding-table td,
+.players-list-table th,
+.players-list-table td,
+.players-bought-container th,
+.players-bought-container td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Slightly smaller text on very small phones */
+@media (max-width: 420px) {
+  .bidding-table td,
+  .players-list-table td,
+  .players-bought-container td { font-size: 16px; }
+}
+.hamburger {
+  /* keep everything else as you have it */
+  top: calc(70px + env(safe-area-inset-top));
+  left: calc(20px + env(safe-area-inset-left));
+  z-index: 1500; /* sits below back-btn (2000) and top-right controls (3000) */
+}
+/* Overflow guards */
+.menu-bar {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.info-grid td,
+.inner-col td,
+.heading-row,
+.value-row,
+.fourth-col-heading,
+.fourth-col-value {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Optional overlap safety */
+.exit-btn { position: relative; z-index: 1200; }
+.circle-btn-large { position: relative; z-index: 1000; }
