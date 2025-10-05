@@ -19,12 +19,10 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamName = localStorage.getItem("myTeam");
   const thisTeam = roomData?.teams?.[teamName];
 
-  // 🧭 Removed “team removed” logic — teams are never auto‑kicked
-  useEffect(() => {
-    // we simply wait for room data; no removal check
-  }, []);
+  // 🧭 no removal logic
+  useEffect(() => {}, []);
 
-  // ✅ Early guard: show joining message until data arrives
+  // ✅ Early guard
   if (!roomData) {
     return (
       <div className="center-box">
@@ -36,18 +34,16 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
   const teamTheme = thisTeam?.theme || "gray";
   const purse = thisTeam?.purse ?? 0;
 
-  // Auction state from Firestore
+  // Auction state from Firestore (read directly so all devices update live)
   const currentPlayer = roomData?.currentPlayer;
-  const currentBid = roomData?.currentBid;
-  const currentBidTeam = roomData?.currentBidTeam;
+  const currentBid = roomData?.currentBid;           // ⬅ live shared value
+  const currentBidTeam = roomData?.currentBidTeam;   // ⬅ live shared value
   const status = roomData?.status;
   const auctionMode = roomData?.auctionMode || "auto";
 
-  // Derived data
   const safeHistory = Array.isArray(thisTeam?.history) ? thisTeam.history : [];
   const overseasCount = safeHistory.filter((h) => h.country !== "India").length;
 
-  // Disable logic for bidding
   const disabled =
     !currentPlayer ||
     status === "SOLD" ||
@@ -73,14 +69,15 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
       }
     } else {
       const increment =
-        currentBid < 100
+        (currentBid || currentPlayer?.basePrice) < 100
           ? 10
-          : currentBid < 1500
+          : (currentBid || currentPlayer?.basePrice) < 1500
           ? 25
           : 50;
       newBid = currentBid ? currentBid + increment : currentPlayer?.basePrice;
     }
 
+    // ✅ make sure both fields are written exactly as host uses
     await updateDoc(doc(db, "rooms", roomId), {
       currentBid: newBid,
       currentBidTeam: teamName,
@@ -91,7 +88,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
 
   return (
     <div className="center-box bidding-room" style={{ "--team-color": teamTheme }}>
-      {/* Team name heading */}
+      {/* Team name */}
       <h2 className="bidding-team-name">{teamName}</h2>
 
       {/* ===== Main auction info table ===== */}
@@ -106,10 +103,9 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
         </thead>
         <tbody>
           <tr>
-            {/* Player name */}
             <td>{currentPlayer?.name || "--"}</td>
 
-            {/* ✅ Animate only numeric value */}
+            {/* ✅ Connected live to Firestore currentBid */}
             <td className="roll-up-cell">
               {currentBid !== null && currentBid !== undefined ? (
                 <>
@@ -122,16 +118,15 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
               )}
             </td>
 
-            {/* ✅ “By” column → current bidding team */}
+            {/* ✅ Connected live to Firestore currentBidTeam */}
             <td>{currentBidTeam || "--"}</td>
 
-            {/* ✅ Static purse (remaining budget) */}
             <td>₹{(purse / 100).toFixed(2)} Cr</td>
           </tr>
         </tbody>
       </table>
 
-      {/* ✅ Jump Bid input (if host allows) */}
+      {/* ✅ Jump Bid input */}
       {jumpBidAllowed && entered && (
         <div style={{ margin: "10px" }}>
           <input
@@ -152,9 +147,7 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
             setEntered(false);
             if (roomData?.activeBidders) {
               await updateDoc(doc(db, "rooms", roomId), {
-                activeBidders: roomData.activeBidders.filter(
-                  (t) => t !== teamName
-                ),
+                activeBidders: roomData.activeBidders.filter((t) => t !== teamName),
               });
             }
           }}
@@ -183,7 +176,6 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
           }}
           onClick={async () => {
             if (!entered) {
-              // First click: mark entered
               if (currentPlayer && status !== "SOLD" && status !== "UNSOLD") {
                 setEntered(true);
                 await updateDoc(doc(db, "rooms", roomId), {
@@ -193,7 +185,6 @@ export default function BiddingRoom({ roomData, roomId, jumpBidAllowed, setPage 
                 });
               }
             } else {
-              // Second click: actual bid
               if (!disabled) handleBid();
             }
           }}
