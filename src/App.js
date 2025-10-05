@@ -88,37 +88,38 @@ export default function App() {
     }
   }, [roomId]);
 useEffect(() => {
-  // Wait until full room data is received
+  // 🕐 Wait until full room data (with teams) exists
   if (!roomData || !roomData.teams) return;
 
   const myTeam = localStorage.getItem("myTeam");
   const myRoom = localStorage.getItem("myRoomId");
 
-  // 🧠 Run only if we're actually in a bidding room for the same room ID
+  // 🧭 Run only inside the bidding room for this same room ID
   if (page !== "biddingRoom" || myRoom !== roomId || !myTeam) return;
 
-  // ✅ Do nothing if the teams map has not yet been populated
   const teamKeys = Object.keys(roomData.teams);
-  if (teamKeys.length === 0) return; // still loading initial snapshot
 
-  // ✅ Alert only if the teams map is present and this device's team
-  // is truly missing after having existed once before
-  const exists = !!roomData.teams[myTeam];
+  // ⏳ Skip check if Firestore still streaming initial snapshot
+  if (teamKeys.length === 0) return;
+
+  const teamExists = Boolean(roomData.teams[myTeam]);
   const everExisted = localStorage.getItem("teamEverExisted");
 
-  if (exists) {
+  // ✅ Team present → remember it and do nothing
+  if (teamExists) {
     localStorage.setItem("teamEverExisted", "true");
-    return; // team is valid
+    return;
   }
 
-  if (everExisted && !exists) {
+  // 🚨 Trigger removal only if the team really existed once and is now missing
+  if (everExisted === "true" && !teamExists) {
     alert("❌ Your team has been removed from this room by the host.");
     localStorage.removeItem("teamEverExisted");
     localStorage.removeItem("myTeam");
     localStorage.removeItem("myRoomId");
     setPage("home");
   }
-}, [roomData, page, roomId]);
+}, [roomData?.teams, page, roomId]);
 
   const getIncrement = (price) => {
     if (price < 100) return 10;
