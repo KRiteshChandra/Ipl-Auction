@@ -963,28 +963,36 @@ html, body {
   border-radius: 3px;
 }
 /* Center wrapper for scaled layout */
-.scale-wrapper {
+.auction-bg {
+  width: 1366px;             /* original desktop design width */
+  height: 768px;             /* original desktop design height */
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  width: 99vw;
-  height: 97vh;
+  position: relative;
   overflow: hidden;
-  box-sizing: border-box;
 
-  /* same visual background everywhere */
   background: linear-gradient(180deg, #033d3d, #001a1a);
-  background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  background-position: center;
   background-attachment: fixed;
 
-  /* helps mobile browsers render “fixed” backgrounds smoothly */
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  transform-origin: top center;
+  transition: transform 0.3s ease;
 }
-@media (orientation: landscape) {
-  .scale-wrapper {
-    align-items: center;       /* Keep centered in landscape */
+
+/* 📱 shrink proportionally by width on smaller screens */
+@media screen and (max-width: 1366px) {
+  .auction-bg {
+    transform: scale(calc(100vw / 1366));
+  }
+}
+
+/* 📺 ensure height always fits in low-height landscape displays */
+@media screen and (orientation: landscape) and (max-height: 768px) {
+  .auction-bg {
+    transform: scale(calc(100vh / 768));
   }
 }
