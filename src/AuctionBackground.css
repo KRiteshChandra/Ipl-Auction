@@ -20,19 +20,27 @@ html, body {
 
 /* --- Common background for every screen --- */
 .auction-bg {
-  width: 99vw;
-  height: 97vh;
+  width: 99vw;               /* 99 % of viewport width */
+  height: 97vh;              /* 97 % of viewport height */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   position: relative;
   overflow: hidden;
+
+  /* fixed‑style gradient background */
   background: linear-gradient(180deg, #033d3d, #001a1a);
-  background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
-  transform: scale(1);
+  background-position: center;
+  background-attachment: fixed;   /* fixed on desktop */
+  
+  /* Mobile “fixed background” stability fix */
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+
+  box-sizing: border-box;
   transform-origin: top center;
 }
 .center-box {
@@ -958,15 +966,22 @@ html, body {
 .scale-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;          /* center the auction box vertically too */
-  width: 99vw;                  /* 99% of visible screen width */
-  height: 97vh;                 /* 97% of visible screen height */
-  overflow: hidden;             /* hide spillover from internal scale */
+  align-items: center;
+  width: 99vw;
+  height: 97vh;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* same visual background everywhere */
   background: linear-gradient(180deg, #033d3d, #001a1a);
-  background-attachment: fixed;
+  background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  box-sizing: border-box;       /* ensures borders/padding don’t push size */
+  background-attachment: fixed;
+
+  /* helps mobile browsers render “fixed” backgrounds smoothly */
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 @media (orientation: landscape) {
   .scale-wrapper {
