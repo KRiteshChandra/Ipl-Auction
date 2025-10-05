@@ -20,25 +20,19 @@ html, body {
 
 /* --- Common background for every screen --- */
 .auction-bg {
-  /* Keep the core layout and gradient */
-  width: 1366px;                /* fixed desktop design width */
-  height: 768px;                /* fixed desktop design height */
+  width: 99vw;
+  height: 97vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   position: relative;
-
-  /* prevent scroll on the main background; scroll only where class="scroll-area" */
   overflow: hidden;
-
-  /* gradient background retained */
   background: linear-gradient(180deg, #033d3d, #001a1a);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
-
-  /* setup for proportional scaling */
+  transform: scale(1);
   transform-origin: top center;
 }
 .center-box {
@@ -946,24 +940,6 @@ html, body {
 
 /* 📏 Adjust menu-bar size on short screens (landscape phones / small tablets) */
 /* 🌍 Smart responsive scaling for all screens */
-@media screen and (max-width: 1600px) {
-  .auction-bg { transform: scale(0.95); transform-origin: top center; }
-}
-@media screen and (max-width: 1366px) {
-  .auction-bg { transform: scale(0.9); transform-origin: top center; }
-}
-@media screen and (max-width: 1200px) {
-  .auction-bg { transform: scale(0.8); transform-origin: top center; }
-}
-@media screen and (max-width: 1024px) {
-  .auction-bg { transform: scale(0.7); transform-origin: top center; }
-}
-@media screen and (max-width: 768px) {
-  .auction-bg { transform: scale(0.6); transform-origin: top center; }
-}
-@media screen and (max-width: 480px) {
-  .auction-bg { transform: scale(0.5); transform-origin: top center; }
-}
 .scroll-area {
   width: 100%;
   max-height: 80vh;      /* fits nicely under headers/buttons */
@@ -982,9 +958,18 @@ html, body {
 .scale-wrapper {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: linear-gradient(180deg, #033d3d, #001a1a); /* match your theme */
+  align-items: center;          /* center the auction box vertically too */
+  width: 99vw;                  /* 99% of visible screen width */
+  height: 97vh;                 /* 97% of visible screen height */
+  overflow: hidden;             /* hide spillover from internal scale */
+  background: linear-gradient(180deg, #033d3d, #001a1a);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-sizing: border-box;       /* ensures borders/padding don’t push size */
+}
+@media (orientation: landscape) {
+  .scale-wrapper {
+    align-items: center;       /* Keep centered in landscape */
+  }
 }
