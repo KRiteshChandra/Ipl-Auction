@@ -27,15 +27,6 @@ html, body {
   position: relative;
 }
 
-.bidding-table, 
-.info-grid, 
-.players-list-table, 
-.history-table {
-  min-width: 700px;       /* enforce desktop layout */
-  overflow-x: auto;       /* scroll if screen narrower */
-  display: block;         /* ensures scrolling works */
-}
-
 .center-box {
   text-align:center;
   margin:auto;
