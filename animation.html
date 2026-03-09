@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div{
+            height: 200px;
+            width: 200px;
+            animation-name: movement;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+            position: relative;
+        }
+        @keyframes movement {
+            0%{
+                background-color: aqua;
+                left: 0px;
+                top: 0px;
+            }
+            25%{
+                background-color: aquamarine;
+                left: 50%;
+                top: 0px;
+            }
+            50%{
+                background-color: blue;
+                left: 50%;
+                top: 50vh;
+            }
+            75%{
+                background-color: black;
+                left: 0px;
+                top: 50vh;
+            }
+            100%{
+                background-color: aqua;
+                left: 0px;
+                top: 0px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div></div>
+</body>
+</html>
